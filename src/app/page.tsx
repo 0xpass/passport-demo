@@ -114,7 +114,7 @@ export default function Home() {
       code: code,
       client_id: googleClientId,
       client_secret: googleClientSecret,
-      redirect_uri: "http://localhost:3000",
+      redirect_uri: window.location.origin,
       grant_type: "authorization_code",
     };
 
@@ -253,7 +253,6 @@ export default function Home() {
                     code: otp,
                   });
 
-                  console.log(response);
                   setSession(JSON.stringify(response.result));
                 }}
               >
