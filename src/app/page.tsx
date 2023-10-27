@@ -167,7 +167,14 @@ export default function Home() {
         <p className="max-w-[40ch] leading-7 mt-8">
           Effortlessly set up your self-custody wallet with a few simple taps, your favorite OAuth
           Providers or email OTP, all while maintaining complete self-custody through an MPC
-          network. Say goodbye to passwords, seed phrases, and private keys
+          network. Say goodbye to passwords, seed phrases, and private keys.{" "}
+          <a
+            className="italic leading-8 underline underline-offset-4"
+            href="https://0xpass.gitbook.io/passport/"
+            target="_blank"
+          >
+            Learn more here
+          </a>
         </p>
       </div>
 
