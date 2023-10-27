@@ -170,7 +170,7 @@ export default function Home() {
           network. Say goodbye to passwords, seed phrases, and private keys.{" "}
           <a
             className="italic leading-8 underline underline-offset-4"
-            href="https://0xpass.gitbook.io/passport/"
+            href="https://passport.0xpass.io"
             target="_blank"
           >
             Learn more here
