@@ -14,11 +14,16 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [session, setSession] = useState("");
+
   const [oauthLoading, setoauthLoading] = useState(false);
+  const [sendOtpLoading, setSendOtpLoading] = useState(false);
+  const [submitOtpLoading, setSubmitOtpLoading] = useState(false);
   const [signMessageLoading, setSignMessageLoading] = useState(false);
   const [signTxLoading, setSignTxLoading] = useState(false);
 
   const [address, setAddress] = useState<any>("");
+
+  const [keygenTime, setKeygenTime] = useState<number | null>(null);
 
   const [message, setMessage] = useState("");
   const [messageSignature, setMessageSignature] = useState<{
@@ -62,11 +67,14 @@ export default function Home() {
       setoauthLoading(true);
       const token = await getAccessTokenFromCode(codeResponse.code);
 
+      const startKeygen = performance.now();
       const session = await passport.getSession({
         scope_id: "1",
         verifier_type: "google",
         code: token.toString(),
       });
+      const endKeygen = performance.now();
+      setKeygenTime(endKeygen - startKeygen);
 
       setSession(JSON.stringify(session.result));
       setoauthLoading(false);
@@ -167,6 +175,7 @@ export default function Home() {
         {session ? (
           <div className="p-6 w-full">
             <p>Connected account: {address} </p>
+            {keygenTime && <p>Took: {keygenTime.toFixed(2)} ms - to generate key & session</p>}
             <br />
             <br />
             <div className="flex space-x-2">
@@ -193,13 +202,7 @@ export default function Home() {
             )}
             <br />
             <br />
-            <div className="flex space-x-3">
-              <button
-                className="border border-1 rounded p-2 w-full h-12 self-center"
-                onClick={async () => await signTx()}
-              >
-                {signTxLoading ? "Loading..." : "Sign Transaction"}
-              </button>
+            <div className="flex space-y-4 flex-col">
               <JsonViewer
                 style={{ backgroundColor: "black", width: "100%" }}
                 displayDataTypes={false}
@@ -214,17 +217,25 @@ export default function Home() {
                   maxPriorityFeePerGas: BigInt(11269117),
                 }}
               />
+
+              {transactionSignature && (
+                <div className="mt-4 space-y-2 text-sm">
+                  <p className="break-words text">Signature: {transactionSignature.signature}</p>
+                  <p>
+                    Time taken preparing transaction with <code>prepareTransaction</code>{" "}
+                    {transactionSignature.prepareTransactionTimeTaken.toFixed(2)} ms
+                  </p>
+                  <p>Time taken: {transactionSignature.timeTaken.toFixed(2)} ms</p>
+                </div>
+              )}
+
+              <button
+                className="border border-1 rounded p-2 w-full h-12 self-center"
+                onClick={async () => await signTx()}
+              >
+                {signTxLoading ? "Loading..." : "Sign Transaction"}
+              </button>
             </div>
-            {transactionSignature && (
-              <div className="mt-4 space-y-2 text-sm">
-                <p className="break-words text">Signature: {transactionSignature.signature}</p>
-                <p>
-                  Time taken preparing transaction with <code>prepareTransaction</code>{" "}
-                  {transactionSignature.prepareTransactionTimeTaken.toFixed(2)} ms
-                </p>
-                <p>Time taken: {transactionSignature.timeTaken.toFixed(2)} ms</p>
-              </div>
-            )}
           </div>
         ) : (
           <div className="flex flex-col items-stretch space-y-8">
@@ -243,11 +254,13 @@ export default function Home() {
               <button
                 className="flex-grow border border-1 rounded p-2"
                 onClick={async () => {
+                  setSendOtpLoading(true);
                   await passport.sendOtp({
                     scope_id: "1",
                     channel_type: "mailto",
                     destination: email,
                   });
+                  setSendOtpLoading(false);
 
                   enqueueSnackbar("", {
                     content: () => (
@@ -258,7 +271,7 @@ export default function Home() {
                   });
                 }}
               >
-                Send an OTP
+                {sendOtpLoading ? "Loading..." : "Send OTP"}
               </button>
             </div>
             <div>
@@ -266,16 +279,21 @@ export default function Home() {
               <button
                 className="w-full border border-1 rounded p-2 mt-10"
                 onClick={async () => {
+                  setSubmitOtpLoading(true);
+                  const keygenTimeStart = performance.now();
                   const response = await passport.getSession({
                     scope_id: "1",
                     verifier_type: "mailto",
                     code: otp,
                   });
+                  const keygenTimeEnd = performance.now();
 
                   setSession(JSON.stringify(response.result));
+                  setKeygenTime(keygenTimeEnd - keygenTimeStart);
+                  setSubmitOtpLoading(false);
                 }}
               >
-                Submit OTP
+                {submitOtpLoading ? "Loading..." : "Submit OTP"}
               </button>
             </div>
           </div>
