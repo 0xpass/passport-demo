@@ -15,6 +15,8 @@ export default function Home() {
   const [otp, setOtp] = useState("");
   const [session, setSession] = useState("");
   const [oauthLoading, setoauthLoading] = useState(false);
+  const [signMessageLoading, setSignMessageLoading] = useState(false);
+  const [signTxLoading, setSignTxLoading] = useState(false);
 
   const [address, setAddress] = useState<any>("");
 
@@ -27,6 +29,7 @@ export default function Home() {
   const [transactionSignature, setTransactionSignature] = useState<{
     signature: string;
     timeTaken: number;
+    prepareTransactionTimeTaken: number;
   } | null>(null);
 
   useEffect(() => {
@@ -76,35 +79,51 @@ export default function Home() {
   }
 
   async function signMessage(message: string) {
-    const client: WalletClient = createWalletClient();
+    try {
+      setSignMessageLoading(true);
+      const client: WalletClient = createWalletClient();
 
-    const startTime = performance.now();
-    const response = await client.signMessage({
-      account: "0x00",
-      message,
-    });
-    const endTime = performance.now();
+      const startTime = performance.now();
+      const response = await client.signMessage({
+        account: "0x00",
+        message,
+      });
+      const endTime = performance.now();
 
-    const timeTaken = endTime - startTime;
-    setMessageSignature({ signature: response, timeTaken });
+      const timeTaken = endTime - startTime;
+      setMessageSignature({ signature: response, timeTaken });
+      setSignMessageLoading(false);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async function signTx() {
-    const client: WalletClient = createWalletClient();
+    try {
+      setSignTxLoading(true);
+      const client: WalletClient = createWalletClient();
 
-    const transaction = await client.prepareTransactionRequest({
-      account: "0x4A67aED1aeE7c26b7063987E7dD226f5f5207ED2",
-      to: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
-      value: BigInt(1000000000000000),
-      chain: mainnet,
-    });
+      const prepareTransactionStart = performance.now();
+      const transaction = await client.prepareTransactionRequest({
+        account: "0x4A67aED1aeE7c26b7063987E7dD226f5f5207ED2",
+        to: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+        value: BigInt(1000000000000000),
+        chain: mainnet,
+      });
+      const prepareTransactionEnd = performance.now();
 
-    const startTime = performance.now();
-    const response = await client.signTransaction(transaction);
-    const endTime = performance.now();
+      const prepareTransactionTimeTaken = prepareTransactionEnd - prepareTransactionStart;
 
-    const timeTaken = endTime - startTime;
-    setTransactionSignature({ signature: response, timeTaken });
+      const startTime = performance.now();
+      const response = await client.signTransaction(transaction);
+      const endTime = performance.now();
+
+      const timeTaken = endTime - startTime;
+      setTransactionSignature({ signature: response, timeTaken, prepareTransactionTimeTaken });
+      setSignTxLoading(false);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async function getAccessTokenFromCode(code: any): Promise<String> {
@@ -163,11 +182,11 @@ export default function Home() {
                 className="flex-grow border border-1 rounded p-2"
                 onClick={async () => await signMessage(message)}
               >
-                Sign Message
+                {signMessageLoading ? "Loading..." : "Sign Message"}
               </button>
             </div>
             {messageSignature && (
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-2 text-sm">
                 <p className="break-words">Signature: {messageSignature.signature}</p>
                 <p>Time taken: {messageSignature.timeTaken.toFixed(2)} ms</p>
               </div>
@@ -179,7 +198,7 @@ export default function Home() {
                 className="border border-1 rounded p-2 w-full h-12 self-center"
                 onClick={async () => await signTx()}
               >
-                Sign Dummy Transaction
+                {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
               <JsonViewer
                 style={{ backgroundColor: "black", width: "100%" }}
@@ -197,13 +216,13 @@ export default function Home() {
               />
             </div>
             {transactionSignature && (
-              <div className="mt-4 space-y-2">
-                <p className="break-words">Signature: {transactionSignature.signature}</p>
-                <p>Time taken: {transactionSignature.timeTaken.toFixed(2)} ms</p>
-                <p className="text-xs">
-                  Note: the displayed time is only time taken to sign the transaction, some time is
-                  taken to run <code>prepareTransaction</code> with viem.
+              <div className="mt-4 space-y-2 text-sm">
+                <p className="break-words text">Signature: {transactionSignature.signature}</p>
+                <p>
+                  Time taken preparing transaction with <code>prepareTransaction</code>{" "}
+                  {transactionSignature.prepareTransactionTimeTaken.toFixed(2)} ms
                 </p>
+                <p>Time taken: {transactionSignature.timeTaken.toFixed(2)} ms</p>
               </div>
             )}
           </div>
