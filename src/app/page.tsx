@@ -8,6 +8,7 @@ import { createPassportClient } from "@0xpass/passport-viem";
 import { mainnet } from "viem/chains";
 import { http, WalletClient } from "viem";
 import { enqueueSnackbar } from "notistack";
+import { JsonViewer } from "@textea/json-viewer";
 
 export default function Home() {
   const [email, setEmail] = useState("");
@@ -18,7 +19,12 @@ export default function Home() {
   const [address, setAddress] = useState<any>("");
 
   const [message, setMessage] = useState("");
-  const [signatureData, setSignatureData] = useState<{
+  const [messageSignature, setMessageSignature] = useState<{
+    signature: string;
+    timeTaken: number;
+  } | null>(null);
+
+  const [transactionSignature, setTransactionSignature] = useState<{
     signature: string;
     timeTaken: number;
   } | null>(null);
@@ -80,7 +86,7 @@ export default function Home() {
     const endTime = performance.now();
 
     const timeTaken = endTime - startTime;
-    setSignatureData({ signature: response, timeTaken });
+    setMessageSignature({ signature: response, timeTaken });
   }
 
   async function signTx() {
@@ -93,8 +99,12 @@ export default function Home() {
       chain: mainnet,
     });
 
+    const startTime = performance.now();
     const response = await client.signTransaction(transaction);
-    alert(JSON.stringify(response));
+    const endTime = performance.now();
+
+    const timeTaken = endTime - startTime;
+    setTransactionSignature({ signature: response, timeTaken });
   }
 
   async function getAccessTokenFromCode(code: any): Promise<String> {
@@ -134,9 +144,9 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="flex space-y-5 flex-col items-center">
+      <div className="flex space-y-5 flex-col items-center max-w-xl mx-auto">
         {session ? (
-          <div className="p-12">
+          <div className="p-6 w-full">
             <p>Connected account: {address} </p>
             <br />
             <br />
@@ -151,20 +161,51 @@ export default function Home() {
               />
               <button
                 className="flex-grow border border-1 rounded p-2"
-                onClick={() => signMessage(message)}
+                onClick={async () => await signMessage(message)}
               >
                 Sign Message
               </button>
             </div>
-            {signatureData && (
-              <div className="mt-4">
-                <p>Signature: {signatureData.signature}</p>
-                <p>Time taken: {signatureData.timeTaken.toFixed(2)} ms</p>
+            {messageSignature && (
+              <div className="mt-4 space-y-2">
+                <p className="break-words">Signature: {messageSignature.signature}</p>
+                <p>Time taken: {messageSignature.timeTaken.toFixed(2)} ms</p>
               </div>
             )}
             <br />
             <br />
-            <button onClick={signTx}>Click Me to Sign Transaction</button>
+            <div className="flex space-x-3">
+              <button
+                className="border border-1 rounded p-2 w-full h-12 self-center"
+                onClick={async () => await signTx()}
+              >
+                Sign Dummy Transaction
+              </button>
+              <JsonViewer
+                style={{ backgroundColor: "black", width: "100%" }}
+                displayDataTypes={false}
+                theme={"dark"}
+                displaySize={true}
+                rootName={false}
+                value={{
+                  to: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+                  value: BigInt(1000000000000000),
+                  gas: BigInt(21000),
+                  maxFeePerGas: BigInt(25832617675),
+                  maxPriorityFeePerGas: BigInt(11269117),
+                }}
+              />
+            </div>
+            {transactionSignature && (
+              <div className="mt-4 space-y-2">
+                <p className="break-words">Signature: {transactionSignature.signature}</p>
+                <p>Time taken: {transactionSignature.timeTaken.toFixed(2)} ms</p>
+                <p className="text-xs">
+                  Note: the displayed time is only time taken to sign the transaction, some time is
+                  taken to run <code>prepareTransaction</code> with viem.
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-stretch space-y-8">
