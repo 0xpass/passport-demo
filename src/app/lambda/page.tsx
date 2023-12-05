@@ -1,9 +1,15 @@
 "use client";
-import { JsonViewer } from "@textea/json-viewer";
 import { useEffect, useState } from "react";
 import { Passport } from "@0xpass/passport";
 
-export default function Page() {
+import dynamic from "next/dynamic";
+
+const JsonViewer = dynamic(
+  () => import("@textea/json-viewer").then((mod) => mod.JsonViewer),
+  { ssr: false }
+);
+
+export default function LambdaPage() {
   const [signature, setsignature] = useState<{
     signature: string;
     timeCreating: number;
@@ -21,6 +27,36 @@ export default function Page() {
       }
     })();
   }, []);
+
+  const lambdaData = {
+    authorization: {
+      type: "none",
+    },
+    verifications: {
+      count: 1,
+    },
+    conditions: [
+      {
+        type: "code",
+        code: "return 3;",
+        output_type: "integer",
+        substitution: false,
+      },
+      {
+        type: "code",
+        code: "return true;",
+        output_type: "integer",
+        substitution: false,
+      },
+    ],
+    actions: {
+      type: "personal_sign",
+      check: "",
+      data: "0x000000",
+      substitution: true,
+    },
+    postHook: [],
+  };
 
   return (
     <div className="p-12">
@@ -41,20 +77,18 @@ export default function Page() {
         </p>
       </div>
 
-      <div className="mt-8 flex flex-col-reverse md:flex-row p-12">
+      <div className="flex flex-col-reverse md:flex-row p-12">
         <div className="flex flex-col items-center w-full md:w-1/2 mb-4 md:mb-0">
           <JsonViewer
             style={{ backgroundColor: "black", width: "100%" }}
             displayDataTypes={false}
             theme={"dark"}
-            quotesOnKeys={false}
             displaySize={true}
             rootName={false}
             value={lambdaData}
-            // sx={{ width: "100%" }}
           />
         </div>
-        <div className="flex flex-col items-center w-full md:w-1/2 mb-4">
+        <div className="flex flex-col items-center w-full md:w-1/2 mb-12">
           <button
             className="w-4/5 border border-1 rounded p-2"
             onClick={async () => {
@@ -112,33 +146,3 @@ export default function Page() {
     </div>
   );
 }
-
-const lambdaData = {
-  authorization: {
-    type: "none",
-  },
-  verifications: {
-    count: 1,
-  },
-  conditions: [
-    {
-      type: "code",
-      code: "return 3;",
-      output_type: "integer",
-      substitution: false,
-    },
-    {
-      type: "code",
-      code: "return true;",
-      output_type: "integer",
-      substitution: false,
-    },
-  ],
-  actions: {
-    type: "personal_sign",
-    check: "",
-    data: "0x000000",
-    substitution: true,
-  },
-  postHook: [],
-};
