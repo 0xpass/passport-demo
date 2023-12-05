@@ -77,6 +77,7 @@ export default function Home() {
       setKeygenTime(endKeygen - startKeygen);
 
       setSession(JSON.stringify(session.result));
+      sessionStorage.setItem("session", JSON.stringify(session.result));
       setoauthLoading(false);
     },
     onError: (errorResponse) => console.log(errorResponse),
@@ -120,14 +121,20 @@ export default function Home() {
       });
       const prepareTransactionEnd = performance.now();
 
-      const prepareTransactionTimeTaken = prepareTransactionEnd - prepareTransactionStart;
+      const prepareTransactionTimeTaken =
+        prepareTransactionEnd - prepareTransactionStart;
 
       const startTime = performance.now();
       const response = await client.signTransaction(transaction);
       const endTime = performance.now();
 
       const timeTaken = endTime - startTime;
-      setTransactionSignature({ signature: response, timeTaken, prepareTransactionTimeTaken });
+      setTransactionSignature({
+        signature: response,
+        timeTaken,
+        prepareTransactionTimeTaken,
+      });
+
       setSignTxLoading(false);
     } catch (error) {
       console.error(error);
@@ -165,9 +172,10 @@ export default function Home() {
       <div className="p-12">
         <h1 className="text-6xl font-bold">Passport Demo</h1>
         <p className="max-w-[40ch] leading-7 mt-8">
-          Effortlessly set up your self-custody wallet with a few simple taps, your favorite OAuth
-          Providers or email OTP, all while maintaining complete self-custody through an MPC
-          network. Say goodbye to passwords, seed phrases, and private keys.{" "}
+          Effortlessly set up your self-custody wallet with a few simple taps,
+          your favorite OAuth Providers or email OTP, all while maintaining
+          complete self-custody through an MPC network. Say goodbye to
+          passwords, seed phrases, and private keys.{" "}
           <a
             className="italic leading-8 underline underline-offset-4"
             href="https://passport.0xpass.io"
@@ -182,7 +190,11 @@ export default function Home() {
         {session ? (
           <div className="p-6 w-full">
             <p>Connected account: {address} </p>
-            {keygenTime && <p>Took: {keygenTime.toFixed(2)} ms - to generate key & session</p>}
+            {keygenTime && (
+              <p>
+                Took: {keygenTime.toFixed(2)} ms - to generate key & session
+              </p>
+            )}
             <br />
             <br />
             <div className="flex space-x-2">
@@ -203,7 +215,9 @@ export default function Home() {
             </div>
             {messageSignature && (
               <div className="mt-4 space-y-2 text-sm">
-                <p className="break-words">Signature: {messageSignature.signature}</p>
+                <p className="break-words">
+                  Signature: {messageSignature.signature}
+                </p>
                 <p>Time taken: {messageSignature.timeTaken.toFixed(2)} ms</p>
               </div>
             )}
@@ -227,12 +241,20 @@ export default function Home() {
 
               {transactionSignature && (
                 <div className="mt-4 space-y-2 text-sm">
-                  <p className="break-words text">Signature: {transactionSignature.signature}</p>
-                  <p>
-                    Time taken preparing transaction with <code>prepareTransaction</code>{" "}
-                    {transactionSignature.prepareTransactionTimeTaken.toFixed(2)} ms
+                  <p className="break-words text">
+                    Signature: {transactionSignature.signature}
                   </p>
-                  <p>Time taken: {transactionSignature.timeTaken.toFixed(2)} ms</p>
+                  <p>
+                    Time taken preparing transaction with{" "}
+                    <code>prepareTransaction</code>{" "}
+                    {transactionSignature.prepareTransactionTimeTaken.toFixed(
+                      2
+                    )}{" "}
+                    ms
+                  </p>
+                  <p>
+                    Time taken: {transactionSignature.timeTaken.toFixed(2)} ms
+                  </p>
                 </div>
               )}
 
@@ -242,11 +264,20 @@ export default function Home() {
               >
                 {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
+
+              <a href="/lambda">
+                <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
+                  Try Passport Lambda
+                </div>
+              </a>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-stretch space-y-8">
-            <button onClick={googleLogin} className="p-2 border border-1 border-gray-600 rounded">
+            <button
+              onClick={googleLogin}
+              className="p-2 border border-1 border-gray-600 rounded"
+            >
               {oauthLoading ? "Loading..." : " Login with Google ✨"}
             </button>
             <div className="flex space-x-2">
@@ -296,6 +327,10 @@ export default function Home() {
                   const keygenTimeEnd = performance.now();
 
                   setSession(JSON.stringify(response.result));
+                  sessionStorage.setItem(
+                    "session",
+                    JSON.stringify(response.result)
+                  );
                   setKeygenTime(keygenTimeEnd - keygenTimeStart);
                   setSubmitOtpLoading(false);
                 }}
