@@ -264,7 +264,7 @@ export default function Home() {
                   setSendOtpLoading(true);
                   await passport.sendOtp({
                     scope_id: "1",
-                    channel_type: "mailto",
+                    channel_type: "email",
                     destination: email,
                   });
                   setSendOtpLoading(false);
@@ -290,7 +290,7 @@ export default function Home() {
                   const keygenTimeStart = performance.now();
                   const response = await passport.getSession({
                     scope_id: "1",
-                    verifier_type: "mailto",
+                    verifier_type: "email",
                     code: otp,
                   });
                   const keygenTimeEnd = performance.now();
