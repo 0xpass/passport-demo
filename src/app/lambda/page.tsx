@@ -41,7 +41,7 @@ export default function LambdaPage() {
       {
         type: "code",
         code: `return ${guess} == 8;`,
-        output_type: "integer",
+        output_type: "boolean",
         substitution: false,
       },
     ],
@@ -96,7 +96,7 @@ export default function LambdaPage() {
                 {
                   type: "code",
                   code: "return ${guess} == 8;",
-                  output_type: "integer",
+                  output_type: "boolean",
                   substitution: false,
                 },
               ],
