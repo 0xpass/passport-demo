@@ -17,6 +17,8 @@ export default function LambdaPage() {
   } | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [guess, setGuess] = useState("");
+
   const passport = new Passport();
 
   useEffect(() => {
@@ -38,13 +40,7 @@ export default function LambdaPage() {
     conditions: [
       {
         type: "code",
-        code: "return 3;",
-        output_type: "integer",
-        substitution: false,
-      },
-      {
-        type: "code",
-        code: "return true;",
+        code: `return ${guess} == 8;`,
         output_type: "integer",
         substitution: false,
       },
@@ -59,7 +55,7 @@ export default function LambdaPage() {
   };
 
   return (
-    <div className="p-12">
+    <div className="p-4 md:p-12">
       <h1 className="text-6xl font-bold">Passport Lambda</h1>
       <div className="flex flex-col md:flex-row md:space-x-9">
         <p className="max-w-[40ch] leading-7 mt-8 text-sm">
@@ -72,8 +68,12 @@ export default function LambdaPage() {
         <br />
         <p className="max-w-[40ch] leading-7 mt-8 text-sm">
           Here we have an example of a very simple lambda function, that does
-          some computation, and then signs a message. You can try it out by
-          clicking on the trigger lambda button
+          some computation, and then signs a message.
+          <br />
+          <br />
+          You can try it out by clicking on the trigger lambda button, with your
+          number guess, if it matches the number 8, a message is signed,
+          otherwise the condition is not met.
         </p>
       </div>
 
@@ -85,10 +85,41 @@ export default function LambdaPage() {
             theme={"dark"}
             displaySize={true}
             rootName={false}
-            value={lambdaData}
+            value={{
+              authorization: {
+                type: "none",
+              },
+              verifications: {
+                count: 1,
+              },
+              conditions: [
+                {
+                  type: "code",
+                  code: "return ${guess} == 8;",
+                  output_type: "integer",
+                  substitution: false,
+                },
+              ],
+              actions: {
+                type: "personal_sign",
+                check: "",
+                data: "0x000000",
+                substitution: true,
+              },
+              postHook: [],
+            }}
           />
         </div>
         <div className="flex flex-col items-center w-full md:w-1/2 mb-12">
+          <input
+            type="text"
+            value={guess}
+            onChange={(e) => {
+              setGuess(e.target.value);
+            }}
+            placeholder="Enter a number"
+            className="border border-1 bg-[#161618] border-gray-600 focus:outline-black rounded p-2 w-4/5 mb-8 text-center"
+          />
           <button
             className="w-4/5 border border-1 rounded p-2"
             onClick={async () => {
