@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Passport } from "@0xpass/passport";
+import {NewLambda, Passport} from "@0xpass/passport";
 
 import dynamic from "next/dynamic";
 
@@ -30,13 +30,15 @@ export default function LambdaPage() {
     })();
   }, []);
 
-  const lambdaData = {
+  const lambdaData: NewLambda = {
     authorization: {
       type: "none",
     },
     verifications: {
       count: 1,
     },
+    max_executions: 0,
+    envs: [],
     conditions: [
       {
         type: "code",
@@ -138,7 +140,10 @@ export default function LambdaPage() {
 
                 const t3 = performance.now();
                 const response = await passport.lambdaCall({
-                  lambda_uuiid: uuid.result,
+                  data: {
+                    id: uuid.result,
+                    params: []
+                  }
                 });
                 const t4 = performance.now();
 
