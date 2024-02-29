@@ -48,7 +48,7 @@ export default function Home() {
   }, []);
 
   const passport = new Passport({
-    scope_id: "6cb8a0cd-0925-4347-a4f7-96a25032d3ee",
+    scope_id: "768b0dfd-3284-4d9f-b611-4418c32b491e",
     signer: signer!,
     endpoint: "https://waffle.0xpass.io",
     enclave_public_key: ENCLAVE_PUBLIC_KEY,
