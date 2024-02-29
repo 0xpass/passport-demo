@@ -139,7 +139,7 @@ export default function Home() {
       }
 
       console.error("Error registering:", error);
-      enqueueSnackbar("Ooops, something went wrong, please try again", {
+      enqueueSnackbar(`Error ${error}`, {
         variant: "error",
       });
     } finally {
