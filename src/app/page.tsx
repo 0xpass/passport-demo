@@ -58,6 +58,7 @@ export default function Home() {
     async function fetchAddress() {
       const client: WalletClient = createWalletClient();
       const response = await client.requestAddresses();
+      console.log("response from fetchAddress", response);
       setAddress(response);
     }
 
@@ -143,12 +144,12 @@ export default function Home() {
   async function authenticate() {
     try {
       await passport.setupEncryption();
-      const [authenticatedHeader, wallet] = await passport.authenticate(
+      const [authenticatedHeader, address] = await passport.authenticate(
         userInput
       );
       setAuthenticatedHeader(authenticatedHeader);
-      console.log(wallet);
-      setAddress(wallet);
+      console.log(address);
+      setAddress(address);
       setAuthenticated(true);
     } catch (error) {
       console.error("Error registering:", error);
