@@ -20,6 +20,8 @@ export default function Home() {
   const [authenticateSetup, setAuthenticateSetup] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
 
+  const [duplicateError, setDuplicateError] = useState(false);
+
   const [address, setAddress] = useState<any>("");
 
   const [keygenTime, setKeygenTime] = useState<number | null>(null);
@@ -80,6 +82,7 @@ export default function Home() {
       enqueueSnackbar("Username cannot be empty", { variant: "error" });
       return;
     }
+    setDuplicateError(false);
 
     // The `passport.register` method triggers a passkey modal flow and the time taken
     // to complete the modal by the user is included in the keygen time. So we intercept
@@ -120,7 +123,6 @@ export default function Home() {
 
     try {
       await passport.setupEncryption();
-
       const res = await passport.register(userInput);
       console.log(res);
       //@ts-ignore
@@ -130,11 +132,16 @@ export default function Home() {
         setAuthenticating(false);
       }
     } catch (error) {
+      // @ts-ignore
+      if (error.message.includes("Duplicate registration")) {
+        setDuplicateError(true);
+        return;
+      }
+
       console.error("Error registering:", error);
-      enqueueSnackbar(
-        "Error registering, make sure you are registering a unique username",
-        { variant: "error" }
-      );
+      enqueueSnackbar("Ooops, something went wrong, please try again", {
+        variant: "error",
+      });
     } finally {
       axios.interceptors.request.eject(requestInterceptor);
       axios.interceptors.response.eject(responseInterceptor);
@@ -319,7 +326,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="flex flex-col items-stretch space-y-8 w-full">
-            <div className="flex flex-col items-center space-y-5 w-full">
+            <div className="flex flex-col items-center space-y-4 w-full">
               <input
                 type="text"
                 placeholder="Enter a unique username"
@@ -327,8 +334,15 @@ export default function Home() {
                 onChange={(e) => {
                   setUsername(e.target.value);
                 }}
-                className="w-4/6 border border-1 bg-[#161618] border-gray-600 focus:outline-black rounded p-3 text-center"
+                className={`w-4/6 border border-1 bg-[#161618] ${
+                  duplicateError ? "border-red-600" : "border-gray-600"
+                } focus:outline-black rounded p-3 text-center`}
               />
+              {duplicateError && (
+                <span className="text-red-600 text-xs">
+                  Username already exists, please choose another
+                </span>
+              )}
               <button
                 className="w-4/6 border border-1 rounded p-3"
                 onClick={authenticateSetup ? authenticate : register}

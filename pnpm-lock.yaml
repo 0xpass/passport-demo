@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@0xpass/passport':
-    specifier: ^0.1.6
-    version: 0.1.6
+    specifier: ^0.1.9
+    version: 0.1.9
   '@0xpass/passport-viem':
     specifier: ^0.0.8
     version: 0.0.8(typescript@5.3.3)
@@ -82,8 +82,8 @@ packages:
       - zod
     dev: false
 
-  /@0xpass/passport@0.1.6:
-    resolution: {integrity: sha512-wG+xkOIRPhndNS60jVAq6UR6wYKKXPzXS2+OyfVK0GdtJbrAWBDKI1KLTjfCr5S481cedOmoOYvPrFcngO68hQ==}
+  /@0xpass/passport@0.1.9:
+    resolution: {integrity: sha512-xdou/fp4HMkIjayxKeHlq62tSOzIGVmiMlRmxBYr0eWuFGppNP8XtGNd2jLTevjQxjLZF507NNzj65giuCWEUw==}
     dependencies:
       '@0xpass/models': 0.0.2
       axios: 1.6.7
@@ -695,17 +695,24 @@ packages:
   /@types/react-dom@18.2.19:
     resolution: {integrity: sha512-aZvQL6uUbIJpjZk4U8JZGbau9KDeAwMfmhyWorxgBkqDIEf6ROjRozcmPIicqsUwPUjbkDfHKgGee1Lq65APcA==}
     dependencies:
-      '@types/react': 18.2.59
+      '@types/react': 18.2.61
     dev: true
 
   /@types/react-transition-group@4.4.8:
     resolution: {integrity: sha512-QmQ22q+Pb+HQSn04NL3HtrqHwYMf4h3QKArOy5F8U5nEVMaihBs3SR10WiOM1iwPz5jIo8x/u11al+iEGZZrvg==}
     dependencies:
-      '@types/react': 18.2.59
+      '@types/react': 18.2.61
     dev: false
 
   /@types/react@18.2.59:
     resolution: {integrity: sha512-DE+F6BYEC8VtajY85Qr7mmhTd/79rJKIHCg99MU9SWPB4xvLb6D1za2vYflgZfmPqQVEr6UqJTnLXEwzpVPuOg==}
+    dependencies:
+      '@types/prop-types': 15.7.9
+      '@types/scheduler': 0.16.5
+      csstype: 3.1.2
+
+  /@types/react@18.2.61:
+    resolution: {integrity: sha512-NURTN0qNnJa7O/k4XUkEW2yfygA+NxS0V5h1+kp9jPwhzZy95q3ADoGMP0+JypMhrZBTTgjKAUlTctde1zzeQA==}
     dependencies:
       '@types/prop-types': 15.7.9
       '@types/scheduler': 0.16.5
