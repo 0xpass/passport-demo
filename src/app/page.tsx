@@ -18,6 +18,7 @@ export default function Home() {
   const [signMessageLoading, setSignMessageLoading] = useState(false);
   const [signTxLoading, setSignTxLoading] = useState(false);
   const [authenticateSetup, setAuthenticateSetup] = useState(false);
+  const [registering, setRegistering] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
 
   const [duplicateError, setDuplicateError] = useState(false);
@@ -78,6 +79,7 @@ export default function Home() {
   };
 
   async function register() {
+    setRegistering(true);
     if (username.trim().length === 0) {
       enqueueSnackbar("Username cannot be empty", { variant: "error" });
       return;
@@ -127,6 +129,7 @@ export default function Home() {
       console.log(res);
       //@ts-ignore
       if (res.result.account_id) {
+        setRegistering(false);
         setAuthenticating(true);
         await authenticate();
         setAuthenticating(false);
@@ -143,12 +146,15 @@ export default function Home() {
         variant: "error",
       });
     } finally {
+      setRegistering(false);
+      setAuthenticating(false);
       axios.interceptors.request.eject(requestInterceptor);
       axios.interceptors.response.eject(responseInterceptor);
     }
   }
 
   async function authenticate() {
+    setAuthenticating(true);
     try {
       await passport.setupEncryption();
       const [authenticatedHeader, address] = await passport.authenticate(
@@ -160,6 +166,8 @@ export default function Home() {
       setAuthenticated(true);
     } catch (error) {
       console.error("Error registering:", error);
+    } finally {
+      setAuthenticating(false);
     }
   }
 
@@ -346,9 +354,12 @@ export default function Home() {
               <button
                 className="w-4/6 border border-1 rounded p-3"
                 onClick={authenticateSetup ? authenticate : register}
+                disabled={registering || authenticating}
               >
                 {authenticateSetup
                   ? "Authenticate"
+                  : registering
+                  ? "Registering..."
                   : authenticating
                   ? "Authenticating..."
                   : "Register"}
