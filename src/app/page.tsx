@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Passport } from "@0xpass/passport";
 import { WebauthnSigner } from "@0xpass/webauthn-signer";
 import axios from "axios";
@@ -22,6 +22,12 @@ export default function Home() {
   const [authenticating, setAuthenticating] = useState(false);
 
   const [duplicateError, setDuplicateError] = useState(false);
+  const [challengeId, setChallengeId] = useState<string | undefined>();
+  const [credentialCreationOptions, setCredentialCreationOptions] =
+    useState<any>({});
+  const [encryptedUser, setEncryptedUser] = useState<any>();
+
+  const [completingRegistration, setCompletingRegistration] = useState(false);
 
   const [address, setAddress] = useState<any>("");
 
@@ -39,23 +45,26 @@ export default function Home() {
     prepareTransactionTimeTaken: number;
   } | null>(null);
 
-  const [signer, setSigner] = useState<null | WebauthnSigner>(null);
+  const signerRef = useRef<WebauthnSigner>();
+  const passportRef = useRef<Passport>();
 
   useEffect(() => {
-    const signer = new WebauthnSigner({
-      rpId: window.location.hostname,
-      rpName: "0xPass",
-    });
+    if (!signerRef.current) {
+      signerRef.current = new WebauthnSigner({
+        rpId: window.location.hostname,
+        rpName: "0xPass",
+      });
+    }
 
-    setSigner(signer);
+    if (!passportRef.current) {
+      passportRef.current = new Passport({
+        scope_id: "2fd7fb98-3996-4d69-90c2-13cb32bc9ae4",
+        signer: signerRef.current!,
+        endpoint: "https://waffle.0xpass.io",
+        enclave_public_key: ENCLAVE_PUBLIC_KEY,
+      });
+    }
   }, []);
-
-  const passport = new Passport({
-    scope_id: "092636d5-7998-47c2-9511-83773b0c3362",
-    signer: signer!,
-    endpoint: "https://waffle.0xpass.io",
-    enclave_public_key: ENCLAVE_PUBLIC_KEY,
-  });
 
   useEffect(() => {
     async function fetchAddress() {
@@ -78,7 +87,7 @@ export default function Home() {
     userDisplayName: username,
   };
 
-  async function register() {
+  async function initiateRegistration() {
     setRegistering(true);
     if (username.trim().length === 0) {
       enqueueSnackbar("Username cannot be empty", { variant: "error" });
@@ -86,6 +95,33 @@ export default function Home() {
     }
     setDuplicateError(false);
 
+    try {
+      await passportRef.current?.setupEncryption();
+      const res = await passportRef.current?.initiateRegistration(userInput);
+      console.log(res);
+
+      setChallengeId(res.challenge_id);
+      setEncryptedUser(res.encrypted_user);
+      setCredentialCreationOptions(res.cco_json);
+      setCompletingRegistration(true);
+      //@ts-ignore
+    } catch (error) {
+      // @ts-ignore
+      if (error.message.includes("Duplicate registration")) {
+        setDuplicateError(true);
+        return;
+      }
+      console.error("Error registering:", error);
+      enqueueSnackbar(`Error ${error}`, {
+        variant: "error",
+      });
+    } finally {
+      setRegistering(false);
+    }
+  }
+
+  async function completeRegistration() {
+    setRegistering(true);
     // The `passport.register` method triggers a passkey modal flow and the time taken
     // to complete the modal by the user is included in the keygen time. So we intercept
     // the request and response to get the actual time taken specific to the keygen process.
@@ -122,11 +158,15 @@ export default function Home() {
         return Promise.reject(error);
       }
     );
-
     try {
-      await passport.setupEncryption();
-      const res = await passport.register(userInput);
+      await passportRef.current?.setupEncryption();
+      const res = await passportRef.current?.completeRegistration(
+        encryptedUser,
+        challengeId,
+        credentialCreationOptions
+      );
       console.log(res);
+      setCompletingRegistration(false);
       //@ts-ignore
       if (res.result.account_id) {
         setRegistering(false);
@@ -135,12 +175,6 @@ export default function Home() {
         setAuthenticating(false);
       }
     } catch (error) {
-      // @ts-ignore
-      if (error.message.includes("Duplicate registration")) {
-        setDuplicateError(true);
-        return;
-      }
-
       console.error("Error registering:", error);
       enqueueSnackbar(`Error ${error}`, {
         variant: "error",
@@ -156,10 +190,10 @@ export default function Home() {
   async function authenticate() {
     setAuthenticating(true);
     try {
-      await passport.setupEncryption();
-      const [authenticatedHeader, address] = await passport.authenticate(
-        userInput
-      );
+      await passportRef.current?.setupEncryption();
+      //@ts-ignore
+      const [authenticatedHeader, address] =
+        await passportRef.current?.authenticate(userInput);
       setAuthenticatedHeader(authenticatedHeader);
       console.log(address);
       setAddress(address);
@@ -338,6 +372,7 @@ export default function Home() {
               <input
                 type="text"
                 placeholder="Enter a unique username"
+                disabled={completingRegistration}
                 value={username}
                 onChange={(e) => {
                   setUsername(e.target.value);
@@ -353,16 +388,30 @@ export default function Home() {
               )}
               <button
                 className="w-4/6 border border-1 rounded p-3"
-                onClick={authenticateSetup ? authenticate : register}
+                onClick={() => {
+                  if (authenticateSetup) {
+                    authenticate();
+                  } else if (completingRegistration) {
+                    completeRegistration();
+                  } else {
+                    initiateRegistration();
+                  }
+                }}
                 disabled={registering || authenticating}
               >
                 {authenticateSetup
-                  ? "Authenticate"
+                  ? authenticating
+                    ? "Authenticating..."
+                    : "Authenticate"
+                  : completingRegistration
+                  ? registering
+                    ? "Finalizing Registration..."
+                    : "Click to complete registration"
                   : registering
-                  ? "Registering..."
+                  ? "Setting up registration..."
                   : authenticating
                   ? "Authenticating..."
-                  : "Register"}
+                  : "Initiate Registration"}
               </button>
 
               <span
