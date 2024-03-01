@@ -58,7 +58,7 @@ export default function Home() {
 
     if (!passportRef.current) {
       passportRef.current = new Passport({
-        scope_id: "2fd7fb98-3996-4d69-90c2-13cb32bc9ae4",
+        scope_id: "092636d5-7998-47c2-9511-83773b0c3362",
         signer: signerRef.current!,
         endpoint: "https://waffle.0xpass.io",
         enclave_public_key: ENCLAVE_PUBLIC_KEY,
