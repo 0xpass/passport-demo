@@ -84,8 +84,13 @@ export default function Home() {
         await authenticate();
         setAuthenticating(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error registering:", error);
+      if (error.message.includes("Duplicate registration")) {
+        setDuplicateError(true);
+        return;
+      }
+      enqueueSnackbar(`Error registering: ${error}`, { variant: "error" });
     } finally {
       setRegistering(false);
     }
