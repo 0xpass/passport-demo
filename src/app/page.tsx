@@ -1,14 +1,12 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { Passport } from "@0xpass/passport";
-import { WebauthnSigner } from "@0xpass/webauthn-signer";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { createPassportClient } from "@0xpass/passport-viem";
 import { mainnet } from "viem/chains";
 import { http, WalletClient } from "viem";
 import { enqueueSnackbar } from "notistack";
 import { JsonViewer } from "@textea/json-viewer";
-import { ENCLAVE_PUBLIC_KEY } from "./helpers";
+import { usePassport } from "./hooks/usePassports";
 
 export default function Home() {
   const [username, setUsername] = useState("");
@@ -45,32 +43,20 @@ export default function Home() {
     prepareTransactionTimeTaken: number;
   } | null>(null);
 
-  const signerRef = useRef<WebauthnSigner>();
-  const passportRef = useRef<Passport>();
+  const endpoint = process.env.NEXT_PUBLIC_ENDPOINT;
+  const enclavePublicKey = process.env.NEXT_PUBLIC_ENCLAVE_PUBLIC_KEY;
+  const scopeId = process.env.NEXT_PUBLIC_SCOPE_ID;
 
-  useEffect(() => {
-    if (!signerRef.current) {
-      signerRef.current = new WebauthnSigner({
-        rpId: window.location.hostname,
-        rpName: "0xPass",
-      });
-    }
-
-    if (!passportRef.current) {
-      passportRef.current = new Passport({
-        scope_id: "092636d5-7998-47c2-9511-83773b0c3362",
-        signer: signerRef.current!,
-        endpoint: "https://waffle.0xpass.io",
-        enclave_public_key: ENCLAVE_PUBLIC_KEY,
-      });
-    }
-  }, []);
+  const { passport } = usePassport({
+    ENCLAVE_PUBLIC_KEY: enclavePublicKey!,
+    scope_id: scopeId!,
+    endpoint: endpoint,
+  });
 
   useEffect(() => {
     async function fetchAddress() {
       const client: WalletClient = createWalletClient();
       const response = await client.requestAddresses();
-      console.log("response from fetchAddress", response);
       setAddress(response);
     }
 
@@ -96,17 +82,15 @@ export default function Home() {
     setDuplicateError(false);
 
     try {
-      await passportRef.current?.setupEncryption();
-      const res = await passportRef.current?.initiateRegistration(userInput);
+      await passport.setupEncryption();
+      const res = await passport.initiateRegistration(userInput);
       console.log(res);
 
       setChallengeId(res.challenge_id);
       setEncryptedUser(res.encrypted_user);
       setCredentialCreationOptions(res.cco_json);
       setCompletingRegistration(true);
-      //@ts-ignore
-    } catch (error) {
-      // @ts-ignore
+    } catch (error: any) {
       if (error.message.includes("Duplicate registration")) {
         setDuplicateError(true);
         return;
@@ -129,7 +113,7 @@ export default function Home() {
     let requestStartTime = 0;
     const requestInterceptor = axios.interceptors.request.use((request) => {
       if (
-        request.url === "https://waffle.0xpass.io" &&
+        request.url === endpoint &&
         request.data &&
         request.data.method === "completeRegistration"
       ) {
@@ -141,10 +125,7 @@ export default function Home() {
 
     const responseInterceptor = axios.interceptors.response.use(
       (response) => {
-        if (
-          response.config.url === "https://waffle.0xpass.io" &&
-          response.config.data
-        ) {
+        if (response.config.url === endpoint && response.config.data) {
           const requestData = JSON.parse(response.config.data);
           if (requestData.method === "completeRegistration") {
             console.log("Completing registration response:", response);
@@ -159,16 +140,15 @@ export default function Home() {
       }
     );
     try {
-      await passportRef.current?.setupEncryption();
-      const res = await passportRef.current?.completeRegistration(
+      await passport.setupEncryption();
+      const res = await passport.completeRegistration(
         encryptedUser,
         challengeId,
         credentialCreationOptions
       );
       console.log(res);
       setCompletingRegistration(false);
-      //@ts-ignore
-      if (res.result.account_id) {
+      if (res?.result.account_id) {
         setRegistering(false);
         setAuthenticating(true);
         await authenticate();
@@ -190,12 +170,11 @@ export default function Home() {
   async function authenticate() {
     setAuthenticating(true);
     try {
-      await passportRef.current?.setupEncryption();
-      //@ts-ignore
-      const [authenticatedHeader, address] =
-        await passportRef.current?.authenticate(userInput);
+      await passport.setupEncryption();
+      const [authenticatedHeader, address] = await passport.authenticate(
+        userInput
+      );
       setAuthenticatedHeader(authenticatedHeader);
-      console.log(address);
       setAddress(address);
       setAuthenticated(true);
     } catch (error) {
@@ -210,7 +189,7 @@ export default function Home() {
       authenticatedHeader,
       fallbackProvider,
       mainnet,
-      "https://waffle.0xpass.io"
+      endpoint
     );
   }
 
