@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { createPassportClient } from "@0xpass/passport-viem";
 import { mainnet } from "viem/chains";
 import { http, WalletClient } from "viem";
@@ -18,17 +17,9 @@ export default function Home() {
   const [authenticateSetup, setAuthenticateSetup] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
-
   const [duplicateError, setDuplicateError] = useState(false);
-  const [challengeId, setChallengeId] = useState<string | undefined>();
-  const [credentialCreationOptions, setCredentialCreationOptions] =
-    useState<any>({});
-  const [encryptedUser, setEncryptedUser] = useState<any>();
-
   const [completingRegistration, setCompletingRegistration] = useState(false);
-
   const [address, setAddress] = useState<any>("");
-
   const [keygenTime, setKeygenTime] = useState<number | null>(null);
 
   const [message, setMessage] = useState("");
@@ -73,7 +64,7 @@ export default function Home() {
     userDisplayName: username,
   };
 
-  async function initiateRegistration() {
+  async function register() {
     setRegistering(true);
     if (username.trim().length === 0) {
       enqueueSnackbar("Username cannot be empty", { variant: "error" });
@@ -83,72 +74,11 @@ export default function Home() {
 
     try {
       await passport.setupEncryption();
-      const res = await passport.initiateRegistration(userInput);
-      console.log(res);
+      const res = await passport.register(userInput);
 
-      setChallengeId(res.challenge_id);
-      setEncryptedUser(res.encrypted_user);
-      setCredentialCreationOptions(res.cco_json);
-      setCompletingRegistration(true);
-    } catch (error: any) {
-      if (error.message.includes("Duplicate registration")) {
-        setDuplicateError(true);
-        return;
-      }
-      console.error("Error registering:", error);
-      enqueueSnackbar(`Error ${error}`, {
-        variant: "error",
-      });
-    } finally {
-      setRegistering(false);
-    }
-  }
-
-  async function completeRegistration() {
-    setRegistering(true);
-    // The `passport.register` method triggers a passkey modal flow and the time taken
-    // to complete the modal by the user is included in the keygen time. So we intercept
-    // the request and response to get the actual time taken specific to the keygen process.
-
-    let requestStartTime = 0;
-    const requestInterceptor = axios.interceptors.request.use((request) => {
-      if (
-        request.url === endpoint &&
-        request.data &&
-        request.data.method === "completeRegistration"
-      ) {
-        console.log("Completing registration request:", request);
-        requestStartTime = performance.now();
-      }
-      return request;
-    });
-
-    const responseInterceptor = axios.interceptors.response.use(
-      (response) => {
-        if (response.config.url === endpoint && response.config.data) {
-          const requestData = JSON.parse(response.config.data);
-          if (requestData.method === "completeRegistration") {
-            console.log("Completing registration response:", response);
-            const timeTaken = performance.now() - requestStartTime;
-            setKeygenTime(timeTaken);
-          }
-        }
-        return response;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-    try {
-      await passport.setupEncryption();
-      const res = await passport.completeRegistration(
-        encryptedUser,
-        challengeId,
-        credentialCreationOptions
-      );
       console.log(res);
       setCompletingRegistration(false);
-      if (res?.result.account_id) {
+      if (res.result.account_id) {
         setRegistering(false);
         setAuthenticating(true);
         await authenticate();
@@ -156,14 +86,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error registering:", error);
-      enqueueSnackbar(`Error ${error}`, {
-        variant: "error",
-      });
     } finally {
       setRegistering(false);
-      setAuthenticating(false);
-      axios.interceptors.request.eject(requestInterceptor);
-      axios.interceptors.response.eject(responseInterceptor);
     }
   }
 
@@ -367,13 +291,11 @@ export default function Home() {
               )}
               <button
                 className="w-4/6 border border-1 rounded p-3"
-                onClick={() => {
+                onClick={async () => {
                   if (authenticateSetup) {
-                    authenticate();
-                  } else if (completingRegistration) {
-                    completeRegistration();
+                    await authenticate();
                   } else {
-                    initiateRegistration();
+                    await register();
                   }
                 }}
                 disabled={registering || authenticating}
@@ -382,15 +304,11 @@ export default function Home() {
                   ? authenticating
                     ? "Authenticating..."
                     : "Authenticate"
-                  : completingRegistration
-                  ? registering
-                    ? "Finalizing Registration..."
-                    : "Click to complete registration"
                   : registering
-                  ? "Setting up registration..."
+                  ? "Registering..."
                   : authenticating
                   ? "Authenticating..."
-                  : "Initiate Registration"}
+                  : " Register"}
               </button>
 
               <span
