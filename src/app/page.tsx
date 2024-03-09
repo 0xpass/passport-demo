@@ -6,6 +6,7 @@ import { http, WalletClient } from "viem";
 import { enqueueSnackbar } from "notistack";
 import { JsonViewer } from "@textea/json-viewer";
 import { usePassport } from "./hooks/usePassports";
+import axios from "axios";
 
 export default function Home() {
   const [username, setUsername] = useState("");
@@ -66,6 +67,36 @@ export default function Home() {
 
   async function register() {
     setRegistering(true);
+    let requestStartTime = 0;
+    const requestInterceptor = axios.interceptors.request.use((request) => {
+      if (
+        request.url === endpoint &&
+        request.data &&
+        request.data.method === "completeRegistration"
+      ) {
+        console.log("Completing registration request:", request);
+        requestStartTime = performance.now();
+      }
+      return request;
+    });
+
+    const responseInterceptor = axios.interceptors.response.use(
+      (response) => {
+        if (response.config.url === endpoint && response.config.data) {
+          const requestData = JSON.parse(response.config.data);
+          if (requestData.method === "completeRegistration") {
+            console.log("Completing registration response:", response);
+            const timeTaken = performance.now() - requestStartTime;
+            setKeygenTime(timeTaken);
+          }
+        }
+        return response;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
     if (username.trim().length === 0) {
       enqueueSnackbar("Username cannot be empty", { variant: "error" });
       return;
@@ -93,6 +124,9 @@ export default function Home() {
       enqueueSnackbar(`Error registering: ${error}`, { variant: "error" });
     } finally {
       setRegistering(false);
+      setAuthenticating(false);
+      axios.interceptors.request.eject(requestInterceptor);
+      axios.interceptors.response.eject(responseInterceptor);
     }
   }
 
@@ -275,57 +309,65 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-stretch space-y-8 w-full">
-            <div className="flex flex-col items-center space-y-4 w-full">
-              <input
-                type="text"
-                placeholder="Enter a unique username"
-                disabled={completingRegistration}
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                }}
-                className={`w-4/6 border border-1 bg-[#161618] ${
-                  duplicateError ? "border-red-600" : "border-gray-600"
-                } focus:outline-black rounded p-3 text-center`}
-              />
-              {duplicateError && (
-                <span className="text-red-600 text-xs">
-                  Username already exists, please choose another
-                </span>
-              )}
-              <button
-                className="w-4/6 border border-1 rounded p-3"
-                onClick={async () => {
-                  if (authenticateSetup) {
-                    await authenticate();
-                  } else {
-                    await register();
+          <form
+            className="flex flex-col items-stretch space-y-8 w-full"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (authenticateSetup) {
+                await authenticate();
+              } else {
+                await register();
+              }
+            }}
+          >
+            <div className="flex flex-col items-stretch space-y-8 w-full">
+              <div className="flex flex-col items-center space-y-4 w-full">
+                <input
+                  type="text"
+                  placeholder="Enter a unique username"
+                  disabled={completingRegistration}
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                  }}
+                  className={`w-4/6 border border-1 bg-[#161618] ${
+                    duplicateError ? "border-red-600" : "border-gray-600"
+                  } focus:outline-black rounded p-3 text-center`}
+                />
+                {duplicateError && (
+                  <span className="text-red-600 text-xs">
+                    Username already exists, please choose another
+                  </span>
+                )}
+                <button
+                  className="w-4/6 border border-1 rounded p-3 cursor-pointer"
+                  type="submit"
+                  disabled={
+                    registering || authenticating || username.length === 0
                   }
-                }}
-                disabled={registering || authenticating}
-              >
-                {authenticateSetup
-                  ? authenticating
+                >
+                  {authenticateSetup
+                    ? authenticating
+                      ? "Authenticating..."
+                      : "Authenticate"
+                    : registering
+                    ? "Registering..."
+                    : authenticating
                     ? "Authenticating..."
-                    : "Authenticate"
-                  : registering
-                  ? "Registering..."
-                  : authenticating
-                  ? "Authenticating..."
-                  : " Register"}
-              </button>
+                    : " Register"}
+                </button>
 
-              <span
-                onClick={() => setAuthenticateSetup(!authenticateSetup)}
-                className="cursor-pointer"
-              >
-                {authenticateSetup
-                  ? "Register a Passkey?"
-                  : "Already have a passkey?"}
-              </span>
+                <span
+                  onClick={() => setAuthenticateSetup(!authenticateSetup)}
+                  className="cursor-pointer"
+                >
+                  {authenticateSetup
+                    ? "Register a Passkey?"
+                    : "Already have a passkey?"}
+                </span>
+              </div>
             </div>
-          </div>
+          </form>
         )}
       </div>
     </main>

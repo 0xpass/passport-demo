@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@0xpass/passport':
-    specifier: ^0.1.13
-    version: 0.1.13
+    specifier: ^0.1.14
+    version: 0.1.14
   '@0xpass/passport-viem':
     specifier: ^0.0.8
     version: 0.0.8(typescript@5.4.2)
@@ -82,8 +82,8 @@ packages:
       - zod
     dev: false
 
-  /@0xpass/passport@0.1.13:
-    resolution: {integrity: sha512-L8pBYI7IsOuMyOeYNZyiwKOyuvXPZM8xHsASU0wYehzPSNjqV5ht6v7XkQxGQsaFlnf8FBSVoDb09j8FG5DnLg==}
+  /@0xpass/passport@0.1.14:
+    resolution: {integrity: sha512-joJTvHgM4AvEiwE+Tz5mEwyXr/n07L+DpYuuYp3MF225idITebiJgB8OGxwDuHtAFBWyXsNR9BHTbtzBxyhl1Q==}
     dependencies:
       '@0xpass/models': 0.0.2
       axios: 1.6.7
@@ -871,7 +871,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001596
-      electron-to-chromium: 1.4.698
+      electron-to-chromium: 1.4.699
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.23.0)
     dev: true
@@ -1047,8 +1047,8 @@ packages:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
     dev: true
 
-  /electron-to-chromium@1.4.698:
-    resolution: {integrity: sha512-f9iZD1t3CLy1AS6vzM5EKGa6p9pRcOeEFXRFbaG2Ta+Oe7MkfRQ3fsvPYidzHe1h4i0JvIvpcY55C+B6BZNGtQ==}
+  /electron-to-chromium@1.4.699:
+    resolution: {integrity: sha512-I7q3BbQi6e4tJJN5CRcyvxhK0iJb34TV8eJQcgh+fR2fQ8miMgZcEInckCo1U9exDHbfz7DLDnFn8oqH/VcRKw==}
     dev: true
 
   /elliptic@6.5.4:
