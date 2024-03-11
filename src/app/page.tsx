@@ -239,7 +239,13 @@ export default function Home() {
             )}
             <br />
             <br />
-            <div className="flex space-x-2">
+            <form
+              className="flex space-x-2"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await signMessage(message);
+              }}
+            >
               <input
                 type="text"
                 value={message}
@@ -250,11 +256,12 @@ export default function Home() {
               />
               <button
                 className="flex-grow border border-1 rounded p-2"
-                onClick={async () => await signMessage(message)}
+                type="submit"
+                disabled={signMessageLoading}
               >
                 {signMessageLoading ? "Loading..." : "Sign Message"}
               </button>
-            </div>
+            </form>
             {messageSignature && (
               <div className="mt-4 space-y-2 text-sm">
                 <p className="break-words">
@@ -265,7 +272,13 @@ export default function Home() {
             )}
             <br />
             <br />
-            <div className="flex space-y-4 flex-col">
+            <form
+              className="flex space-y-4 flex-col"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await signTx();
+              }}
+            >
               <JsonViewer
                 style={{ backgroundColor: "black", width: "100%" }}
                 displayDataTypes={false}
@@ -302,11 +315,12 @@ export default function Home() {
 
               <button
                 className="border border-1 rounded p-2 w-full h-12 self-center"
-                onClick={async () => await signTx()}
+                type="submit"
+                disabled={signTxLoading}
               >
                 {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
-            </div>
+            </form>
           </div>
         ) : (
           <form
