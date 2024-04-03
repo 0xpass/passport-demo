@@ -138,6 +138,7 @@ export default function Home() {
         userInput
       );
       setAuthenticatedHeader(authenticatedHeader);
+      sessionStorage.setItem("session",JSON.stringify(authenticatedHeader))
       setAddress(address);
       setAuthenticated(true);
     } catch (error) {
@@ -379,6 +380,11 @@ export default function Home() {
                     ? "Register a Passkey?"
                     : "Already have a passkey?"}
                 </span>
+                <a href="/lambda">
+                  <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
+                    Try Passport Lambda
+                  </div>
+                </a>
               </div>
             </div>
           </form>
