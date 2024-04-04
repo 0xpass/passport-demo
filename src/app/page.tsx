@@ -138,6 +138,7 @@ export default function Home() {
         userInput
       );
       setAuthenticatedHeader(authenticatedHeader);
+      sessionStorage.setItem("session",JSON.stringify(authenticatedHeader))
       setAddress(address);
       setAuthenticated(true);
     } catch (error) {
@@ -320,6 +321,16 @@ export default function Home() {
               >
                 {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
+              <br/>
+              <h2 className="text-lg">
+                Programmatic Singing
+                <a href="/lambda">
+                  <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
+                    Try Passport Lambda
+                  </div>
+                </a>
+              </h2>
+
             </form>
           </div>
         ) : (
@@ -379,6 +390,12 @@ export default function Home() {
                     ? "Register a Passkey?"
                     : "Already have a passkey?"}
                 </span>
+                <br/>
+                <a href="/lambda">
+                  <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
+                    Try Passport Lambda
+                  </div>
+                </a>
               </div>
             </div>
           </form>
