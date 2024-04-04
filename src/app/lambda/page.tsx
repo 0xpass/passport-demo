@@ -21,7 +21,8 @@ export default function LambdaPage() {
     } | null>(null);
 
     const [loading, setLoading] = useState(false);
-    const [guess, setGuess] = useState("");
+    const [guess1, setGuess1] = useState("");
+    const [guess2, setGuess2] = useState("");
 
 
     const endpoint = process.env.NEXT_PUBLIC_ENDPOINT;
@@ -63,7 +64,45 @@ export default function LambdaPage() {
         }
     }
 
-    const triviaLambdaId = "af287ee0-1072-4da7-93e5-f83d7d99ab7d"
+    const triviaLambdaId = "d0bb7eca-9666-4d71-a010-0722a96d824d"
+
+    const ethPriceJson = {
+        "data": {
+            "authorization": {
+                "type": "none"
+            },
+            "verifications": {
+                "count": 1
+            },
+            "envs": [],
+            "max_executions": 0,
+            "conditions": [
+                {
+                    "type": "fetch",
+                    "endpoint": "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
+                    "protocol": "GET",
+                    "headers": {"content-type":"application/json"},
+                    "body": {},
+                    "substitution": false
+                },
+                {
+                    "type": "code",
+                    "code": "let ethPriceJson=<<conditions.0>>;if( ethPriceJson['output']['ethereum']['usd'] >= parseFloat('<<inputs.0>>')){ return true; } else { return false; }",
+                    "output_type": "integer",
+                    "substitution": true
+                }
+            ],
+            "actions": {
+                "type": "personal_sign",
+                "check": "",
+                "data": "0x000000",
+                "substitution": true
+            },
+            "postHook": []
+        }
+    }
+
+    const ethPriceUuid = "a14e368f-f48d-4685-a889-9650250f39e6"
 
 
     return (
@@ -76,7 +115,8 @@ export default function LambdaPage() {
                     simple use of APIs.
                 </p>
             </div>
-            <br/> <br/>
+
+            <br/><br/>
             <h2 className="text-4xl font-bold">Bitcoin Trivia Example </h2>
             <p className="leading-7 mt-8 text-md">
                 <b>Question:</b>
@@ -98,9 +138,9 @@ export default function LambdaPage() {
                 <div className="flex flex-col items-center w-full md:w-1/2 mb-12">
                     <input
                         type="text"
-                        value={guess}
+                        value={guess1}
                         onChange={(e) => {
-                            setGuess(e.target.value);
+                            setGuess1(e.target.value);
                         }}
                         placeholder="Enter the block hash"
                         className="border border-1 bg-[#161618] border-gray-600 focus:outline-black rounded p-2 w-4/5 mb-8 text-center"
@@ -115,7 +155,7 @@ export default function LambdaPage() {
                                 const response = await passport.executeLambda({
                                     data: {
                                         id: triviaLambdaId,
-                                        params: [guess]
+                                        params: [guess1]
                                     }
                                 });
                                 const t2 = performance.now();
@@ -142,6 +182,78 @@ export default function LambdaPage() {
                             <p>
                                 Time taken executing lambda:{" "}
                                 {firstLambdaOutput.timeExecuting.toFixed(2)} ms
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <br/> <br/>
+            <h2 className="text-4xl font-bold">Sign based on Live Ethereum Price </h2>
+            <p className="leading-7 mt-8 text-md">
+                <b>How it works:</b>
+                <br/>
+                In the input, enter a price target for ETH. If current ETH Price is greater than your price target, lambda returns a signature otherwise it doesn't.
+            </p>
+            <div className="flex flex-col-reverse md:flex-row p-12">
+                <br/>
+                <div className="flex flex-col items-center w-full md:w-1/2 mb-4 md:mb-0">
+                    <JsonViewer
+                        style={{ backgroundColor: "black", width: "100%" }}
+                        displayDataTypes={false}
+                        theme={"dark"}
+                        displaySize={true}
+                        rootName={false}
+                        value={ethPriceJson}
+                    />
+                </div>
+                <div className="flex flex-col items-center w-full md:w-1/2 mb-12">
+                    <input
+                        type="text"
+                        value={guess2}
+                        onChange={(e) => {
+                            setGuess2(e.target.value);
+                        }}
+                        placeholder="Enter your ETH Price Target"
+                        className="border border-1 bg-[#161618] border-gray-600 focus:outline-black rounded p-2 w-4/5 mb-8 text-center"
+                    />
+                    <button
+                        className="w-4/5 border border-1 rounded p-2"
+                        onClick={async () => {
+                            try {
+                                setLoading(true);
+
+                                const t1 = performance.now();
+                                const response = await passport.executeLambda({
+                                    data: {
+                                        id: ethPriceUuid,
+                                        params: [guess2]
+                                    }
+                                });
+                                const t2 = performance.now();
+
+                                const timeExecutingLambda = t2 - t1;
+
+                                setSecondLambdaOutput({
+                                    signature: response.result,
+                                    timeExecuting: timeExecutingLambda,
+                                });
+                            } catch (e) {
+                                console.log(e);
+                            } finally {
+                                setLoading(false);
+                            }
+                        }}
+                    >
+                        {loading ? "Loading..." : "Trigger Lambda"}
+                    </button>
+                    {secondLambdaOutput && (
+                        <div className="mt-4 space-y-2 text-sm w-full overflow-x-auto">
+                            <p className="break-words">Output: { secondLambdaOutput.signature}</p>
+
+                            <p>
+                                Time taken executing lambda:{" "}
+                                {secondLambdaOutput.timeExecuting.toFixed(2)} ms
                             </p>
                         </div>
                     )}
