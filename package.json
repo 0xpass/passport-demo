@@ -9,9 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@0xpass/passport": "^0.1.14",
-    "@0xpass/passport-viem": "^0.0.8",
-    "@0xpass/webauthn-signer": "^0.0.3",
+    "@0xpass/passport": "^1.0.0",
+    "@0xpass/passport-viem": "^1.0.0",
+    "@0xpass/webauthn-signer": "^1.0.0",
+    "@clerk/nextjs": "^4.29.10",
+    "@clerk/themes": "^1.7.11",
     "@react-oauth/google": "^0.11.1",
     "@textea/json-viewer": "^3.2.3",
     "axios": "latest",
