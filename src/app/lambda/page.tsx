@@ -70,7 +70,7 @@ export default function LambdaPage() {
         }
     }
 
-    const triviaLambdaId = "e625ff05-993e-4dea-905e-2938057277a2"
+    const triviaLambdaId = "7d4e282c-c60c-4d58-b14e-2008666f1c58"
 
     const ethPriceJson = {
         "data": {
@@ -108,7 +108,7 @@ export default function LambdaPage() {
         }
     }
 
-    const ethPriceUuid = "c0c09ddb-bb68-4347-bab3-2b2058b8b932"
+    const ethPriceUuid = "a30262fb-2f48-4054-93b6-fde88b3af89a"
 
     const jwtDelegationJson = {
         "data": {
@@ -138,7 +138,7 @@ export default function LambdaPage() {
         }
     };
 
-    const jwtDelegationUuid = "c8b2e454-1dee-4850-a348-ac5d0ec166d1"
+    const jwtDelegationUuid = "a50036c6-92b1-43ff-93cd-255010883c50"
 
     const pemJson = {
         "publicKey": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmSnDN6uifbHRKHPh03zLLFHndhh7SA698vHqUvqogrPvTbYBdQbgW1jXYXx/CEIe/1SdiLTHVbck8i5XbOC9GoqfuNP0hgFAXSd8BS9+HgaDerOe5ilmhPPkGKSSejxclff1LQiTE/Fpru5DR9mNGTxSIV0XDVUto1bARoJUHnNZD+P3kdyJZ+F0B8rZynkFOK1Svci1wkYXBDPc8F+4xVoikCuIqN+5LIHpm3+7zTsVkDIBnYLhG/ac2CPAjNtfS1MkcrPRToWqGV+udQW4I79eBp+kyCcoUahi/s6AJx2eBk/I8grGiuBNNosSn9/kiIydu+iewjwowIE1qS3v8wIDAQAB-----END PUBLIC KEY-----",
