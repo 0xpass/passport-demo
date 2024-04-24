@@ -46,6 +46,13 @@ export default function Home() {
     endpoint: endpoint,
   });
 
+  const {passportDoa}  = usePassport({
+    ENCLAVE_PUBLIC_KEY: enclavePublicKey!,
+    scope_id: scopeId!,
+    endpoint: endpoint,
+    signerType: 'doa'
+  });
+
   useEffect(() => {
     async function fetchAddress() {
       const client: WalletClient = createWalletClient();
@@ -105,17 +112,31 @@ export default function Home() {
     setDuplicateError(false);
 
     try {
-      await passport.setupEncryption();
-      const res = await passport.register(userInput);
+      if(authenticationMethod === "passkeys") {
+        await passport.setupEncryption();
+        const res = await passport.register(userInput);
+        console.log(res);
+        setCompletingRegistration(false);
+        if (res.result.account_id) {
+          setRegistering(false);
+          setAuthenticating(true);
+          await authenticate();
+          setAuthenticating(false);
+        }
 
-      console.log(res);
-      setCompletingRegistration(false);
-      if (res.result.account_id) {
-        setRegistering(false);
-        setAuthenticating(true);
-        await authenticate();
-        setAuthenticating(false);
+      } else {
+        await passportDoa.setupEncryption();
+        passportDoa.setUser(userInput)
+        const res = await passportDoa.delegateRegister(userInput);
+        setCompletingRegistration(false);
+        if (res.result.account_id) {
+          setRegistering(false);
+          setAuthenticating(true);
+          await authenticate();
+          setAuthenticating(false);
+        }
       }
+     
     } catch (error: any) {
       console.error("Error registering:", error);
       if (error.message.includes("Duplicate registration")) {
@@ -134,14 +155,27 @@ export default function Home() {
   async function authenticate() {
     setAuthenticating(true);
     try {
-      await passport.setupEncryption();
-      const [authenticatedHeader, address] = await passport.authenticate(
-        userInput
-      );
-      setAuthenticatedHeader(authenticatedHeader);
-      sessionStorage.setItem("session",JSON.stringify(authenticatedHeader))
-      setAddress(address);
-      setAuthenticated(true);
+      if(authenticationMethod === "passkeys") {
+        await passport.setupEncryption();
+        const [authenticatedHeader, address] = await passport.authenticate(
+          userInput
+        );
+        setAuthenticatedHeader(authenticatedHeader);
+        sessionStorage.setItem("session",JSON.stringify(authenticatedHeader))
+        setAddress(address);
+        setAuthenticated(true);
+      } else {
+        await passportDoa.setupEncryption();
+        passportDoa.setUser(userInput)
+        const [authenticatedHeader, address] = await passportDoa.authenticate(
+          userInput
+        );
+        setAuthenticatedHeader(authenticatedHeader);
+        sessionStorage.setItem("session",JSON.stringify(authenticatedHeader))
+        setAddress(address);
+        setAuthenticated(true);
+      }
+      
     } catch (error) {
       console.error("Error registering:", error);
     } finally {
@@ -388,12 +422,12 @@ export default function Home() {
                   {authenticateSetup
                     ? authenticating
                       ? "Authenticating..."
-                      : "Authenticate"
+                      : "Authenticate with " + authenticationMethod.toUpperCase()
                     : registering
                     ? "Registering..."
                     : authenticating
                     ? "Authenticating..."
-                    : " Register"}
+                    : " Register with " + authenticationMethod.toUpperCase()}
                 </button>
 
                 <span
@@ -401,8 +435,8 @@ export default function Home() {
                   className="cursor-pointer"
                 >
                   {authenticateSetup
-                    ? "Register a Passkey?"
-                    : "Already have a passkey?"}
+                    ? "Register an Account?"
+                    : "Already have an Account?"}
                 </span>
                 <br/>
                 <a href="/lambda">
