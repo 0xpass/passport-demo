@@ -18,6 +18,7 @@ export default function Home() {
   const [authenticateSetup, setAuthenticateSetup] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
+  const [authenticationMethod, setAuthenticationMethod] = useState('passkeys');
   const [duplicateError, setDuplicateError] = useState(false);
   const [completingRegistration, setCompletingRegistration] = useState(false);
   const [address, setAddress] = useState<any>("");
@@ -347,6 +348,19 @@ export default function Home() {
           >
             <div className="flex flex-col items-stretch space-y-8 w-full">
               <div className="flex flex-col items-center space-y-4 w-full">
+                <div className="flex justify-start items-center mb-4">
+                  <label htmlFor="authenticationMethod" className="mr-2 text-lg">Method:</label>
+                  <div className="flex-grow">
+                    <select
+                        id="authenticationMethod"
+                        onChange={(e) => setAuthenticationMethod(e.target.value)}
+                        className="w-full border border-gray-600 bg-[#161618] text-white rounded p-2 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                      >
+                        <option value="passkey">Passkeys</option>
+                        <option value="doa">DOA</option>
+                    </select>
+                  </div>
+                </div>
                 <input
                   type="text"
                   placeholder="Enter a unique username"
