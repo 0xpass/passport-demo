@@ -164,7 +164,7 @@ export default function Home() {
 
       const startTime = performance.now();
       const response = await client.signMessage({
-        account: "0x00",
+        account: "0x0000000000000000000000000000000000000000",
         message,
       });
       const endTime = performance.now();
