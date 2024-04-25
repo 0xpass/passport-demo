@@ -138,7 +138,7 @@ export default function Home() {
         userInput
       );
       setAuthenticatedHeader(authenticatedHeader);
-      sessionStorage.setItem("session",JSON.stringify(authenticatedHeader))
+      sessionStorage.setItem("session", JSON.stringify(authenticatedHeader));
       setAddress(address);
       setAuthenticated(true);
     } catch (error) {
@@ -161,10 +161,11 @@ export default function Home() {
     try {
       setSignMessageLoading(true);
       const client: WalletClient = createWalletClient();
+      const [account] = await client.getAddresses();
 
       const startTime = performance.now();
       const response = await client.signMessage({
-        account: "0x0000000000000000000000000000000000000000",
+        account: account,
         message,
       });
       const endTime = performance.now();
@@ -321,7 +322,7 @@ export default function Home() {
               >
                 {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
-              <br/>
+              <br />
               <h2 className="text-lg">
                 Programmatic Singing
                 <a href="/lambda">
@@ -330,7 +331,6 @@ export default function Home() {
                   </div>
                 </a>
               </h2>
-
             </form>
           </div>
         ) : (
@@ -390,7 +390,7 @@ export default function Home() {
                     ? "Register a Passkey?"
                     : "Already have a passkey?"}
                 </span>
-                <br/>
+                <br />
                 <a href="/lambda">
                   <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
                     Try Passport Lambda
