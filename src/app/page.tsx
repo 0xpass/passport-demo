@@ -5,20 +5,21 @@ import { mainnet } from "viem/chains";
 import { http, WalletClient } from "viem";
 import { enqueueSnackbar } from "notistack";
 import { JsonViewer } from "@textea/json-viewer";
-import { usePassport } from "./hooks/usePassports";
+import { usePassport } from "./hooks/usePassport";
+import { SignUpButton, useUser } from "@clerk/nextjs";
 import axios from "axios";
 
 export default function Home() {
   const [username, setUsername] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [authenticatedHeader, setAuthenticatedHeader] = useState({});
+  const { isSignedIn } = useUser();
 
   const [signMessageLoading, setSignMessageLoading] = useState(false);
   const [signTxLoading, setSignTxLoading] = useState(false);
   const [authenticateSetup, setAuthenticateSetup] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
-  const [authenticationMethod, setAuthenticationMethod] = useState('passkeys');
   const [duplicateError, setDuplicateError] = useState(false);
   const [completingRegistration, setCompletingRegistration] = useState(false);
   const [address, setAddress] = useState<any>("");
@@ -46,13 +47,6 @@ export default function Home() {
     endpoint: endpoint,
   });
 
-  const {passportDoa}  = usePassport({
-    ENCLAVE_PUBLIC_KEY: enclavePublicKey!,
-    scope_id: scopeId!,
-    endpoint: endpoint,
-    signerType: 'doa'
-  });
-
   useEffect(() => {
     async function fetchAddress() {
       const client: WalletClient = createWalletClient();
@@ -62,6 +56,10 @@ export default function Home() {
 
     if (Object.keys(authenticatedHeader).length > 0) {
       fetchAddress();
+    }
+
+    if (isSignedIn) {
+      setAuthenticated(true);
     }
   }, [authenticatedHeader]);
 
@@ -112,31 +110,16 @@ export default function Home() {
     setDuplicateError(false);
 
     try {
-      if(authenticationMethod === "passkeys") {
-        await passport.setupEncryption();
-        const res = await passport.register(userInput);
-        console.log(res);
-        setCompletingRegistration(false);
-        if (res.result.account_id) {
-          setRegistering(false);
-          setAuthenticating(true);
-          await authenticate();
-          setAuthenticating(false);
-        }
-
-      } else {
-        await passportDoa.setupEncryption();
-        passportDoa.setUser(userInput)
-        const res = await passportDoa.delegateRegister(userInput);
-        setCompletingRegistration(false);
-        if (res.result.account_id) {
-          setRegistering(false);
-          setAuthenticating(true);
-          await authenticate();
-          setAuthenticating(false);
-        }
+      await passport.setupEncryption();
+      const res = await passport.register(userInput);
+      console.log(res);
+      setCompletingRegistration(false);
+      if (res.result.account_id) {
+        setRegistering(false);
+        setAuthenticating(true);
+        await authenticate();
+        setAuthenticating(false);
       }
-     
     } catch (error: any) {
       console.error("Error registering:", error);
       if (error.message.includes("Duplicate registration")) {
@@ -155,27 +138,14 @@ export default function Home() {
   async function authenticate() {
     setAuthenticating(true);
     try {
-      if(authenticationMethod === "passkeys") {
-        await passport.setupEncryption();
-        const [authenticatedHeader, address] = await passport.authenticate(
-          userInput
-        );
-        setAuthenticatedHeader(authenticatedHeader);
-        sessionStorage.setItem("session",JSON.stringify(authenticatedHeader))
-        setAddress(address);
-        setAuthenticated(true);
-      } else {
-        await passportDoa.setupEncryption();
-        passportDoa.setUser(userInput)
-        const [authenticatedHeader, address] = await passportDoa.authenticate(
-          userInput
-        );
-        setAuthenticatedHeader(authenticatedHeader);
-        sessionStorage.setItem("session",JSON.stringify(authenticatedHeader))
-        setAddress(address);
-        setAuthenticated(true);
-      }
-      
+      await passport.setupEncryption();
+      const [authenticatedHeader, address] = await passport.authenticate(
+        userInput
+      );
+      setAuthenticatedHeader(authenticatedHeader);
+      sessionStorage.setItem("session", JSON.stringify(authenticatedHeader));
+      setAddress(address);
+      setAuthenticated(true);
     } catch (error) {
       console.error("Error registering:", error);
     } finally {
@@ -356,7 +326,7 @@ export default function Home() {
               >
                 {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
-              <br/>
+              <br />
               <h2 className="text-lg">
                 Programmatic Singing
                 <a href="/lambda">
@@ -365,88 +335,85 @@ export default function Home() {
                   </div>
                 </a>
               </h2>
-
             </form>
           </div>
         ) : (
-          <form
-            className="flex flex-col items-stretch space-y-8 w-full"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (authenticateSetup) {
-                await authenticate();
-              } else {
-                await register();
-              }
-            }}
-          >
-            <div className="flex flex-col items-stretch space-y-8 w-full">
-              <div className="flex flex-col items-center space-y-4 w-full">
-                <div className="flex justify-start items-center mb-4">
-                  <label htmlFor="authenticationMethod" className="mr-2 text-lg">Method:</label>
-                  <div className="flex-grow">
-                    <select
-                        id="authenticationMethod"
-                        onChange={(e) => setAuthenticationMethod(e.target.value)}
-                        className="w-full border border-gray-600 bg-[#161618] text-white rounded p-2 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                      >
-                        <option value="passkey">Passkeys</option>
-                        <option value="doa">DOA</option>
-                    </select>
-                  </div>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Enter a unique username"
-                  disabled={completingRegistration}
-                  value={username}
-                  onChange={(e) => {
-                    setUsername(e.target.value);
-                  }}
-                  className={`w-4/6 border border-1 bg-[#161618] ${
-                    duplicateError ? "border-red-600" : "border-gray-600"
-                  } focus:outline-black rounded p-3 text-center`}
-                />
-                {duplicateError && (
-                  <span className="text-red-600 text-xs">
-                    Username already exists, please choose another
-                  </span>
-                )}
-                <button
-                  className="w-4/6 border border-1 rounded p-3 cursor-pointer"
-                  type="submit"
-                  disabled={
-                    registering || authenticating || username.length === 0
-                  }
-                >
-                  {authenticateSetup
-                    ? authenticating
+          <>
+            <SignUpButton
+              mode="modal"
+              afterSignInUrl="/auth/callback"
+              afterSignUpUrl="/auth/callback"
+            >
+              <button className="w-4/6 border border-1 rounded p-3 cursor-pointer">
+                Sign Up / In With Clerk
+              </button>
+            </SignUpButton>
+            <form
+              className="flex flex-col items-stretch space-y-8 w-full"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (authenticateSetup) {
+                  await authenticate();
+                } else {
+                  await register();
+                }
+              }}
+            >
+              <div className="flex flex-col items-stretch space-y-8 w-full">
+                <div className="flex flex-col items-center space-y-4 w-full">
+                  <input
+                    type="text"
+                    placeholder="Enter a unique username"
+                    disabled={completingRegistration}
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                    }}
+                    className={`w-4/6 border border-1 bg-[#161618] ${
+                      duplicateError ? "border-red-600" : "border-gray-600"
+                    } focus:outline-black rounded p-3 text-center`}
+                  />
+                  {duplicateError && (
+                    <span className="text-red-600 text-xs">
+                      Username already exists, please choose another
+                    </span>
+                  )}
+                  <button
+                    className="w-4/6 border border-1 rounded p-3 cursor-pointer"
+                    type="submit"
+                    disabled={
+                      registering || authenticating || username.length === 0
+                    }
+                  >
+                    {authenticateSetup
+                      ? authenticating
+                        ? "Authenticating..."
+                        : "Authenticate"
+                      : registering
+                      ? "Registering..."
+                      : authenticating
                       ? "Authenticating..."
-                      : "Authenticate with " + authenticationMethod.toUpperCase()
-                    : registering
-                    ? "Registering..."
-                    : authenticating
-                    ? "Authenticating..."
-                    : " Register with " + authenticationMethod.toUpperCase()}
-                </button>
+                      : " Register"}
+                  </button>
 
-                <span
-                  onClick={() => setAuthenticateSetup(!authenticateSetup)}
-                  className="cursor-pointer"
-                >
-                  {authenticateSetup
-                    ? "Register an Account?"
-                    : "Already have an Account?"}
-                </span>
-                <br/>
-                <a href="/lambda">
-                  <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
-                    Try Passport Lambda
-                  </div>
-                </a>
+                  <span
+                    onClick={() => setAuthenticateSetup(!authenticateSetup)}
+                    className="cursor-pointer"
+                  >
+                    {authenticateSetup
+                      ? "Register an Account?"
+                      : "Already have an Account?"}
+                  </span>
+                  <br />
+                  <a href="/lambda">
+                    <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
+                      Try Passport Lambda
+                    </div>
+                  </a>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </>
         )}
       </div>
     </main>

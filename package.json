@@ -18,6 +18,8 @@
     "axios": "latest",
     "next": "13.5.6",
     "notistack": "^3.0.1",
+    "@clerk/nextjs": "^4.29.10",
+    "@clerk/themes": "^1.7.11",
     "react": "^18",
     "react-dom": "^18",
     "viem": "^1.16.6"
