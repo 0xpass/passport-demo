@@ -187,10 +187,11 @@ export default function Home() {
     try {
       setSignMessageLoading(true);
       const client: WalletClient = createWalletClient();
+      const [account] = await client.getAddresses();
 
       const startTime = performance.now();
       const response = await client.signMessage({
-        account: "0x0000000000000000000000000000000000000000",
+        account: account,
         message,
       });
       const endTime = performance.now();
@@ -470,12 +471,6 @@ export default function Home() {
                 {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
               <br />
-
-              <a href="/lambda">
-                <div className="w-full border border-1 rounded p-2 h-12  hover:cursor-pointer text-center">
-                  Try Passport Lambda
-                </div>
-              </a>
             </form>
           </div>
         ) : (
