@@ -226,7 +226,7 @@ export default function LambdaPage() {
             onClick={async () => {
               try {
                 setLoading(true);
-
+                await passport.setupEncryption();
                 const t1 = performance.now();
                 const response = await passport.executeLambda({
                   data: {
@@ -301,6 +301,7 @@ export default function LambdaPage() {
             onClick={async () => {
               try {
                 setLoading(true);
+                // await passport.setupEncryption();
 
                 const t1 = performance.now();
                 const response = await passport.executeLambda({
@@ -397,7 +398,7 @@ export default function LambdaPage() {
             onClick={async () => {
               try {
                 setLoading(true);
-
+                await passport.setupEncryption();
                 const t1 = performance.now();
                 const response = await passport.executeLambda({
                   data: {
