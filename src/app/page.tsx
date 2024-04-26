@@ -416,7 +416,7 @@ export default function Home() {
             <br />
             <br />
             <form
-              className="flex space-y-4 flex-col"
+              className="flex space-y-2 flex-col"
               onSubmit={async (e) => {
                 e.preventDefault();
                 if (isSignedIn) {
@@ -472,7 +472,7 @@ export default function Home() {
               <br />
 
               <a href="/lambda">
-                <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
+                <div className="w-full border border-1 rounded p-2 h-12  hover:cursor-pointer text-center">
                   Try Passport Lambda
                 </div>
               </a>
@@ -546,11 +546,6 @@ export default function Home() {
                       : "Already have an Account?"}
                   </span>
                   <br />
-                  <a href="/lambda">
-                    <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
-                      Try Passport Lambda
-                    </div>
-                  </a>
                 </div>
               </div>
             </form>
