@@ -13,7 +13,9 @@ export default function Home() {
   const [username, setUsername] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [authenticatedHeader, setAuthenticatedHeader] = useState({});
-  const { isSignedIn } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
+
+  const [addressLoading, setAddressLoading] = useState(false);
 
   const [signMessageLoading, setSignMessageLoading] = useState(false);
   const [signTxLoading, setSignTxLoading] = useState(false);
@@ -58,10 +60,29 @@ export default function Home() {
       fetchAddress();
     }
 
+    const fetchDelegatedAddress = async () => {
+      setAddressLoading(true);
+      try {
+        const response = await fetch("/api/get-account", {
+          method: "GET",
+        });
+
+        if (response.ok) {
+          const addresses = await response.json();
+          setAddress(addresses.result[0]);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setAddressLoading(false);
+      }
+    };
+
     if (isSignedIn) {
+      fetchDelegatedAddress();
       setAuthenticated(true);
     }
-  }, [authenticatedHeader]);
+  }, [authenticatedHeader, isSignedIn]);
 
   const alchemyUrl = process.env.NEXT_PUBLIC_ALCHEMY_URL;
   const fallbackProvider = http(alchemyUrl);
@@ -199,8 +220,12 @@ export default function Home() {
       const prepareTransactionTimeTaken =
         prepareTransactionEnd - prepareTransactionStart;
 
+      const [account] = await client.requestAddresses();
       const startTime = performance.now();
-      const response = await client.signTransaction(transaction);
+      const response = await client.signTransaction({
+        ...transaction,
+        account: account,
+      });
       const endTime = performance.now();
 
       const timeTaken = endTime - startTime;
@@ -216,6 +241,113 @@ export default function Home() {
     }
   }
 
+  async function delegatedSignTx() {
+    setSignTxLoading(true);
+    try {
+      const transaction = {
+        from: "0x078352189fEDC08a20A904C7effB2bE7438f901e",
+        nonce: "1",
+        gasPrice: "0x9184E72A000", // Example: 1 Gwei in hex
+        to: "0xb89FF4E9AD6B33F69153fa710F9849f51712eEc4",
+        gas: "0x7530", // 30,000
+        value: "0x2386F26FC10000", // 0.01 ETH in Wei
+        chainId: "0x5", // Goerli's chain ID
+        type: "0x00",
+      };
+
+      const startTime = performance.now();
+      const response = await fetch("/api/sign", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "transaction",
+          data: transaction,
+        }),
+      });
+
+      if (response.ok) {
+        const { signature } = await response.json();
+        const timeTaken = performance.now() - startTime;
+        console.log({ signature });
+
+        setTransactionSignature({
+          prepareTransactionTimeTaken: 0,
+          signature: signature.result,
+          timeTaken,
+        });
+      } else {
+        throw new Error(
+          `HTTP error: ${response.status} ${response.statusText}`
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSignTxLoading(false);
+    }
+  }
+
+  async function delegatedSignMessage(message: string) {
+    setSignMessageLoading(true);
+    try {
+      const startTime = performance.now();
+      let response = await fetch("/api/sign", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "message",
+          data: message,
+        }),
+      });
+
+      if (response.ok) {
+        const { signature } = await response.json();
+        console.log(signature);
+        const timeTaken = performance.now() - startTime;
+        setMessageSignature({
+          signature: signature.result,
+          timeTaken: timeTaken,
+        });
+      } else {
+        throw Error(`HTTP error: ${response}`);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSignMessageLoading(false);
+    }
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center">
+        <svg
+          className="animate-spin h-12 w-12 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M22 12c0-5.522-4.477-10-10-10-1.065 0-2.098.166-3.051.47l1.564 1.564A8 8 0 0112 4c4.418 0 8 3.582 8 8h-2z"
+          ></path>
+        </svg>
+      </div>
+    );
+  }
   return (
     <main>
       <div className="p-12">
@@ -235,9 +367,9 @@ export default function Home() {
       </div>
 
       <div className="flex space-y-5 flex-col items-center max-w-xl mx-auto mt-16">
-        {authenticated ? (
+        {authenticated || isSignedIn ? (
           <div className="p-6 w-full">
-            <p>Connected account: {address} </p>
+            <p>Connected account: {addressLoading ? "Loading..." : address} </p>
             {keygenTime && (
               <p>
                 Took: {keygenTime.toFixed(2)} ms - to generate key & session
@@ -249,7 +381,11 @@ export default function Home() {
               className="flex space-x-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                await signMessage(message);
+                if (isSignedIn) {
+                  await delegatedSignMessage(message);
+                } else {
+                  await signMessage(message);
+                }
               }}
             >
               <input
@@ -258,6 +394,7 @@ export default function Home() {
                 onChange={(e) => {
                   setMessage(e.target.value);
                 }}
+                required
                 className="flex-grow border border-1 bg-[#161618] border-gray-600 focus:outline-black rounded p-2"
               />
               <button
@@ -282,7 +419,11 @@ export default function Home() {
               className="flex space-y-4 flex-col"
               onSubmit={async (e) => {
                 e.preventDefault();
-                await signTx();
+                if (isSignedIn) {
+                  await delegatedSignTx();
+                } else {
+                  await signTx();
+                }
               }}
             >
               <JsonViewer
@@ -305,14 +446,16 @@ export default function Home() {
                   <p className="break-words text">
                     Signature: {transactionSignature.signature}
                   </p>
-                  <p>
-                    Time taken preparing transaction with{" "}
-                    <code>prepareTransaction</code>{" "}
-                    {transactionSignature.prepareTransactionTimeTaken.toFixed(
-                      2
-                    )}{" "}
-                    ms
-                  </p>
+                  {transactionSignature.prepareTransactionTimeTaken > 0 && (
+                    <p>
+                      Time taken preparing transaction with{" "}
+                      <code>prepareTransaction</code>{" "}
+                      {transactionSignature.prepareTransactionTimeTaken.toFixed(
+                        2
+                      )}{" "}
+                      ms
+                    </p>
+                  )}
                   <p>
                     Time taken: {transactionSignature.timeTaken.toFixed(2)} ms
                   </p>
@@ -327,14 +470,12 @@ export default function Home() {
                 {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
               <br />
-              <h2 className="text-lg">
-                Programmatic Singing
-                <a href="/lambda">
-                  <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
-                    Try Passport Lambda
-                  </div>
-                </a>
-              </h2>
+
+              <a href="/lambda">
+                <div className="w-full border border-1 rounded p-2 mt-2 hover:cursor-pointer text-center">
+                  Try Passport Lambda
+                </div>
+              </a>
             </form>
           </div>
         ) : (
