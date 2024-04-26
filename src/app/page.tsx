@@ -472,6 +472,11 @@ export default function Home() {
               </button>
               <br />
             </form>
+            <a href="/lambda" type="submit">
+              <button className="border border-1 rounded p-2 w-full h-12 self-center">
+                Try Passport Lambda
+              </button>
+            </a>
           </div>
         ) : (
           <>

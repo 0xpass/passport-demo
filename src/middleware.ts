@@ -1,7 +1,7 @@
 import { authMiddleware } from "@clerk/nextjs/server";
 
 export default authMiddleware({
-  publicRoutes: ["/", "/auth/callback"],
+  publicRoutes: ["/", "/auth/callback", "/lambda"],
 });
 
 export const config = {
