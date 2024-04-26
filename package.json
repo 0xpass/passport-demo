@@ -9,9 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@0xpass/passport": "^1.0.0",
-    "@0xpass/passport-viem": "^1.0.0",
-    "@0xpass/webauthn-signer": "^1.0.0",
+    "@0xpass/key-signer": "^2.0.0",
+    "@0xpass/passport": "^2.0.1",
+    "@0xpass/passport-viem": "^2.0.0",
+    "@0xpass/webauthn-signer": "^2.0.0",
+    "@clerk/nextjs": "^4.29.10",
+    "@clerk/themes": "^1.7.11",
     "@react-oauth/google": "^0.11.1",
     "@textea/json-viewer": "^3.2.3",
     "axios": "latest",
@@ -19,7 +22,7 @@
     "notistack": "^3.0.1",
     "react": "^18",
     "react-dom": "^18",
-    "viem": "^1.16.6"
+    "viem": "^2.9.4"
   },
   "devDependencies": {
     "@types/node": "latest",

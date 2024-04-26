@@ -26,7 +26,6 @@ export function usePassport({
     });
   }
 
-
   if (!passportRef.current) {
     passportRef.current = new Passport({
       scope_id: scope_id,
