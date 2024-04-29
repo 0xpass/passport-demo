@@ -187,7 +187,7 @@ export default function Home() {
     try {
       setSignMessageLoading(true);
       const client: WalletClient = createWalletClient();
-      const [account] = await client.getAddresses();
+      const [account] = await client.requestAddresses();
 
       const startTime = performance.now();
       const response = await client.signMessage({
