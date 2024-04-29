@@ -489,66 +489,69 @@ export default function Home() {
                 Sign Up / In With Clerk
               </button>
             </SignUpButton>
-            <form
-              className="flex flex-col items-stretch space-y-8 w-full"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (authenticateSetup) {
-                  await authenticate();
-                } else {
-                  await register();
-                }
-              }}
-            >
-              <div className="flex flex-col items-stretch space-y-8 w-full">
-                <div className="flex flex-col items-center space-y-4 w-full">
-                  <input
-                    type="text"
-                    placeholder="Enter a unique username"
-                    disabled={completingRegistration}
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                    }}
-                    className={`w-4/6 border border-1 bg-[#161618] ${
-                      duplicateError ? "border-red-600" : "border-gray-600"
-                    } focus:outline-black rounded p-3 text-center`}
-                  />
-                  {duplicateError && (
-                    <span className="text-red-600 text-xs">
-                      Username already exists, please choose another
-                    </span>
-                  )}
-                  <button
-                    className="w-4/6 border border-1 rounded p-3 cursor-pointer"
-                    type="submit"
-                    disabled={
-                      registering || authenticating || username.length === 0
-                    }
-                  >
-                    {authenticateSetup
-                      ? authenticating
+            <div className="w-full pt-8">
+              <h2 className="text-center pb-4">Sign Up / In With Passkeys</h2>
+              <form
+                className="flex flex-col items-stretch space-y-8 w-full"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (authenticateSetup) {
+                    await authenticate();
+                  } else {
+                    await register();
+                  }
+                }}
+              >
+                <div className="flex flex-col items-stretch space-y-8 w-full">
+                  <div className="flex flex-col items-center space-y-4 w-full">
+                    <input
+                      type="text"
+                      placeholder="Enter a unique username"
+                      disabled={completingRegistration}
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                      }}
+                      className={`w-4/6 border border-1 bg-[#161618] ${
+                        duplicateError ? "border-red-600" : "border-gray-600"
+                      } focus:outline-black rounded p-3 text-center`}
+                    />
+                    {duplicateError && (
+                      <span className="text-red-600 text-xs">
+                        Username already exists, please choose another
+                      </span>
+                    )}
+                    <button
+                      className="w-4/6 border border-1 rounded p-3 cursor-pointer"
+                      type="submit"
+                      disabled={
+                        registering || authenticating || username.length === 0
+                      }
+                    >
+                      {authenticateSetup
+                        ? authenticating
+                          ? "Authenticating..."
+                          : "Authenticate"
+                        : registering
+                        ? "Registering..."
+                        : authenticating
                         ? "Authenticating..."
-                        : "Authenticate"
-                      : registering
-                      ? "Registering..."
-                      : authenticating
-                      ? "Authenticating..."
-                      : " Register"}
-                  </button>
+                        : " Register"}
+                    </button>
 
-                  <span
-                    onClick={() => setAuthenticateSetup(!authenticateSetup)}
-                    className="cursor-pointer"
-                  >
-                    {authenticateSetup
-                      ? "Register an Account?"
-                      : "Already have an Account?"}
-                  </span>
-                  <br />
+                    <span
+                      onClick={() => setAuthenticateSetup(!authenticateSetup)}
+                      className="cursor-pointer"
+                    >
+                      {authenticateSetup
+                        ? "Register an Account?"
+                        : "Already have an Account?"}
+                    </span>
+                    <br />
+                  </div>
                 </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </>
         )}
       </div>
