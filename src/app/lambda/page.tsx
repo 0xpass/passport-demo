@@ -68,7 +68,7 @@ export default function LambdaPage() {
     },
   };
 
-  const triviaLambdaId = "7d4e282c-c60c-4d58-b14e-2008666f1c58";
+  const triviaLambdaId = "a833044c-c77e-4e9e-91d1-5ddf271717bc";
 
   const ethPriceJson = {
     data: {
@@ -107,7 +107,7 @@ export default function LambdaPage() {
     },
   };
 
-  const ethPriceUuid = "a30262fb-2f48-4054-93b6-fde88b3af89a";
+  const ethPriceUuid = "f20ad641-4db9-4530-a395-a06214bf3912";
 
   const jwtDelegationJson = {
     data: {
@@ -137,7 +137,7 @@ export default function LambdaPage() {
     },
   };
 
-  const jwtDelegationUuid = "a50036c6-92b1-43ff-93cd-255010883c50";
+  const jwtDelegationUuid = "d24cbd82-cf23-4447-8027-baa2dc0c57dc";
 
   const pemJson = {
     publicKey:
