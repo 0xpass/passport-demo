@@ -1,7 +1,11 @@
 "use client";
 import { useState } from "react";
 import { usePassport } from "@/app/hooks/usePassport";
-import { JsonViewer } from "@textea/json-viewer";
+import dynamic from "next/dynamic";
+const JsonViewer = dynamic(
+  () => import("@textea/json-viewer").then((mod) => mod.JsonViewer),
+  { ssr: false }
+);
 
 export default function LambdaPage() {
   const [firstLambdaOutput, setfirstLambdaOutput] = useState<{
