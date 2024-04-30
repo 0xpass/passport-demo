@@ -1,13 +1,7 @@
 "use client";
 import { useState } from "react";
-
-import dynamic from "next/dynamic";
 import { usePassport } from "@/app/hooks/usePassport";
-
-const JsonViewer = dynamic(
-  () => import("@textea/json-viewer").then((mod) => mod.JsonViewer),
-  { ssr: false }
-);
+import { JsonViewer } from "@textea/json-viewer";
 
 export default function LambdaPage() {
   const [firstLambdaOutput, setfirstLambdaOutput] = useState<{
@@ -301,8 +295,7 @@ export default function LambdaPage() {
             onClick={async () => {
               try {
                 setLoading(true);
-                // await passport.setupEncryption();
-
+                await passport.setupEncryption();
                 const t1 = performance.now();
                 const response = await passport.executeLambda({
                   data: {
@@ -343,7 +336,7 @@ export default function LambdaPage() {
       </div>
       <br /> <br />
       <h2 className="text-4xl font-bold">Delegate Auth using JWTs </h2>
-      <p className="leading-7 mt-8 text-md">
+      <div className="leading-7 mt-8 text-md">
         <b>How it works:</b>
         <br />
         You as developer owns the JWT Private Key. You register a verification
@@ -370,7 +363,7 @@ export default function LambdaPage() {
             value={pemJson}
           />
         </div>
-      </p>
+      </div>
       <div className="flex flex-col-reverse md:flex-row p-12">
         <br />
         <div className="flex flex-col items-center w-full md:w-1/2 mb-4 md:mb-0">
