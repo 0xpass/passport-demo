@@ -351,7 +351,7 @@ export default function Home() {
   }
   return (
     <main>
-      <div className="p-12">
+      <div className="p-8">
         <h1 className="text-6xl font-bold">Passport Demo</h1>
         <p className="max-w-[40ch] leading-7 mt-8">
           Effortlessly set up your self-custody wallet with a few simple taps /
