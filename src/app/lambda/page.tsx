@@ -252,7 +252,7 @@ export default function LambdaPage() {
           {firstLambdaOutput && (
             <div className="mt-4 space-y-2 text-sm w-full overflow-x-auto">
               <p className="break-words">
-                Output: {firstLambdaOutput.signature}
+                Output: {firstLambdaOutput.signature || "Condition not met"}
               </p>
 
               <p>
@@ -327,7 +327,7 @@ export default function LambdaPage() {
           {secondLambdaOutput && (
             <div className="mt-4 space-y-2 text-sm w-full overflow-x-auto">
               <p className="break-words">
-                Output: {secondLambdaOutput.signature}
+                Output: {secondLambdaOutput.signature || "Condition not met"}
               </p>
 
               <p>
@@ -423,7 +423,7 @@ export default function LambdaPage() {
           {thirdLambdaOutput && (
             <div className="mt-4 space-y-2 text-sm w-full overflow-x-auto">
               <p className="break-words">
-                Output: {thirdLambdaOutput.signature}
+                Output: {thirdLambdaOutput.signature || "Condition not met"}
               </p>
 
               <p>

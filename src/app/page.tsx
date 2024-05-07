@@ -515,10 +515,13 @@ export default function Home() {
                 {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
             
-              <div className="flex flex-col items-center space-y-1">
+            </form>
+            <div className="flex flex-col items-center space-y-1">
                 <button
                   className="text-xs border border-1 rounded p-2 w-full h-12"
-                  onClick={() => attachLambda()}
+                  onClick={async () => { 
+                    await attachLambda(); // Added await to ensure the function is called properly
+                  }}
                   title="Attach Lambda (Note: Message signing is permitted only during even-numbered minutes)"
                 >
                   Attach Lambda to your account<br /><span className="text-gray-500">(Note: Wallet signing will get restricted to  even-numbered minutes)</span>
@@ -527,7 +530,6 @@ export default function Home() {
                   Try more Lambdas
                 </a>
               </div>
-            </form>
             
           </div>
         ) : (
@@ -610,3 +612,4 @@ export default function Home() {
     </main>
   );
 }
+
