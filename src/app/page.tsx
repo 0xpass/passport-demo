@@ -51,35 +51,31 @@ export default function Home() {
   });
 
   const evenMinuteExample: NewLambda = {
-      authorization: {
-        type: "none",
-      },
-      verifications: {
-        count: 1,
-      },
-      envs: [],
-      triggers: [
-        {type: "account"}
-      ],
-      max_executions: 0,
-      conditions: [
-        {
-          type: "code",
-          code: "const currentMinute = new Date().getMinutes();\nconst isEvenMinute = currentMinute % 2 === 0;\nreturn isEvenMinute;",
-          output_type: "integer",
-          substitution: true,
-        },
-      ],
-      actions: {
-        type: "personal_sign",
-        check: "",
-        data: "0x000000",
+    authorization: {
+      type: "none",
+    },
+    verifications: {
+      count: 1,
+    },
+    envs: [],
+    triggers: [{ type: "account" }],
+    max_executions: 0,
+    conditions: [
+      {
+        type: "code",
+        code: "const currentMinute = new Date().getMinutes();\nconst isEvenMinute = currentMinute % 2 === 0;\nreturn isEvenMinute;",
+        output_type: "integer",
         substitution: true,
       },
-      postHook: [],
+    ],
+    actions: {
+      type: "personal_sign",
+      check: "",
+      data: "0x000000",
+      substitution: true,
+    },
+    postHook: [],
   };
-
-
 
   useEffect(() => {
     async function fetchAddress() {
@@ -206,7 +202,6 @@ export default function Home() {
     }
   }
 
-
   function createWalletClient() {
     return createPassportClient(
       authenticatedHeader,
@@ -233,21 +228,22 @@ export default function Home() {
       setMessageSignature({ signature: response, timeTaken });
     } catch (error) {
       console.error(error);
-      setMessageSignature({ signature: "Signing was not successful", timeTaken:0 });
+      setMessageSignature({
+        signature: "Signing was not successful",
+        timeTaken: 0,
+      });
     }
     setSignMessageLoading(false);
-
   }
 
   async function attachLambda() {
     try {
-      await passport.createLambda({data: evenMinuteExample})
-      alert("Lambda has been attached. Try singing now...")
+      await passport.createLambda({ data: evenMinuteExample });
+      alert("Lambda has been attached. Try singing now...");
     } catch (error) {
       console.error(error);
     }
   }
-
 
   async function signTx() {
     try {
@@ -435,6 +431,7 @@ export default function Home() {
               }}
             >
               <input
+                id="input-message"
                 type="text"
                 value={message}
                 onChange={(e) => {
@@ -444,6 +441,7 @@ export default function Home() {
                 className="flex-grow border border-1 bg-[#161618] border-gray-600 focus:outline-black rounded p-2"
               />
               <button
+                id="button-sign-message"
                 className="flex-grow border border-1 rounded p-2"
                 type="submit"
                 disabled={signMessageLoading}
@@ -508,29 +506,38 @@ export default function Home() {
                 </div>
               )}
               <button
+                id="button-sign-tx"
                 className="border border-1 rounded p-2 w-full h-12 self-center"
                 type="submit"
                 disabled={signTxLoading}
               >
                 {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
-            
             </form>
             <div className="flex flex-col items-center space-y-1">
-                <button
-                  className="text-xs border border-1 rounded p-2 w-full h-12"
-                  onClick={async () => { 
-                    await attachLambda(); // Added await to ensure the function is called properly
-                  }}
-                  title="Attach Lambda (Note: Message signing is permitted only during even-numbered minutes)"
-                >
-                  Attach Lambda to your account<br /><span className="text-gray-500">(Note: Wallet signing will get restricted to  even-numbered minutes)</span>
-                </button>
-                <a href="/lambda" className="text-center text-md text-gray-500 underline w-full">
-                  Try more Lambdas
-                </a>
-              </div>
-            
+              <button
+                id="button-attach-lambda"
+                className="text-xs border border-1 rounded p-2 w-full h-12"
+                onClick={async () => {
+                  await attachLambda(); // Added await to ensure the function is called properly
+                }}
+                title="Attach Lambda (Note: Message signing is permitted only during even-numbered minutes)"
+              >
+                Attach Lambda to your account
+                <br />
+                <span className="text-gray-500">
+                  (Note: Wallet signing will get restricted to even-numbered
+                  minutes)
+                </span>
+              </button>
+              <a
+                id="link-try-more-lambda"
+                href="/lambda"
+                className="text-center text-md text-gray-500 underline w-full"
+              >
+                Try more Lambdas
+              </a>
+            </div>
           </div>
         ) : (
           <>
@@ -539,7 +546,10 @@ export default function Home() {
               afterSignInUrl="/auth/callback"
               afterSignUpUrl="/auth/callback"
             >
-              <button className="w-4/6 border border-1 rounded p-3 cursor-pointer">
+              <button
+                id="button-doa-sign-up"
+                className="w-4/6 border border-1 rounded p-3 cursor-pointer"
+              >
                 Sign Up / In With Clerk
               </button>
             </SignUpButton>
@@ -559,6 +569,7 @@ export default function Home() {
                 <div className="flex flex-col items-stretch space-y-8 w-full">
                   <div className="flex flex-col items-center space-y-4 w-full">
                     <input
+                      id="input-username"
                       type="text"
                       placeholder="Enter a unique username"
                       disabled={completingRegistration}
@@ -576,6 +587,7 @@ export default function Home() {
                       </span>
                     )}
                     <button
+                      id="button-passkey-register"
                       className="w-4/6 border border-1 rounded p-3 cursor-pointer"
                       type="submit"
                       disabled={
@@ -612,4 +624,3 @@ export default function Home() {
     </main>
   );
 }
-
