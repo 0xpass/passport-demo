@@ -7,6 +7,7 @@ import { enqueueSnackbar } from "notistack";
 import { JsonViewer } from "@textea/json-viewer";
 import { usePassport } from "./hooks/usePassport";
 import { SignUpButton, useUser } from "@clerk/nextjs";
+import {LambdaNewParams} from "@0xpass/passport"
 import axios from "axios";
 
 export default function Home() {
@@ -48,6 +49,39 @@ export default function Home() {
     scope_id: scopeId!,
     endpoint: endpoint,
   });
+
+  const evenMinuteExample: LambdaNewParams = {
+    data: {
+      authorization: {
+        type: "none",
+      },
+      verifications: {
+        count: 1,
+      },
+      envs: [],
+      triggers: [
+        {type: "account"}
+      ],
+      max_executions: 0,
+      conditions: [
+        {
+          type: "code",
+          code: "const currentMinute = new Date().getMinutes();\nconst isEvenMinute = currentMinute % 2 === 0;\nreturn isEvenMinute;",
+          output_type: "integer",
+          substitution: true,
+        },
+      ],
+      actions: {
+        type: "personal_sign",
+        check: "",
+        data: "0x000000",
+        substitution: true,
+      },
+      postHook: [],
+    },
+  };
+
+
 
   useEffect(() => {
     async function fetchAddress() {
@@ -174,6 +208,7 @@ export default function Home() {
     }
   }
 
+
   function createWalletClient() {
     return createPassportClient(
       authenticatedHeader,
@@ -198,11 +233,23 @@ export default function Home() {
 
       const timeTaken = endTime - startTime;
       setMessageSignature({ signature: response, timeTaken });
-      setSignMessageLoading(false);
+    } catch (error) {
+      console.error(error);
+      setMessageSignature({ signature: "Signing was not successful", timeTaken:0 });
+    }
+    setSignMessageLoading(false);
+
+  }
+
+  async function attachLambda() {
+    try {
+      await passport.createLambda(evenMinuteExample)
+      alert("Lambda has been attached. Try singing now...")
     } catch (error) {
       console.error(error);
     }
   }
+
 
   async function signTx() {
     try {
@@ -367,7 +414,7 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="flex space-y-5 flex-col items-center max-w-xl mx-auto mt-16">
+      <div className="flex space-y-5 flex-col items-center max-w-xl mx-auto mt-5">
         {authenticated || isSignedIn ? (
           <div className="p-6 w-full">
             <p>Connected account: {addressLoading ? "Loading..." : address} </p>
@@ -462,7 +509,6 @@ export default function Home() {
                   </p>
                 </div>
               )}
-
               <button
                 className="border border-1 rounded p-2 w-full h-12 self-center"
                 type="submit"
@@ -470,13 +516,21 @@ export default function Home() {
               >
                 {signTxLoading ? "Loading..." : "Sign Transaction"}
               </button>
-              <br />
+            
+              <div className="flex flex-col items-center space-y-1">
+                <button
+                  className="text-xs border border-1 rounded p-2 w-full h-12"
+                  onClick={() => attachLambda()}
+                  title="Attach Lambda (Note: Message signing is permitted only during even-numbered minutes)"
+                >
+                  Attach Lambda to your account<br /><span className="text-gray-500">(Note: Wallet signing will get restricted to  even-numbered minutes)</span>
+                </button>
+                <a href="/lambda" className="text-center text-md text-gray-500 underline w-full">
+                  Try more Lambdas
+                </a>
+              </div>
             </form>
-            <a href="/lambda" type="submit">
-              <button className="border border-1 rounded p-2 w-full h-12 self-center">
-                Try Passport Lambda
-              </button>
-            </a>
+            
           </div>
         ) : (
           <>
