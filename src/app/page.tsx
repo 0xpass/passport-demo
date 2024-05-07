@@ -7,8 +7,8 @@ import { enqueueSnackbar } from "notistack";
 import { JsonViewer } from "@textea/json-viewer";
 import { usePassport } from "./hooks/usePassport";
 import { SignUpButton, useUser } from "@clerk/nextjs";
-import {LambdaNewParams} from "@0xpass/passport"
 import axios from "axios";
+import { NewLambda } from "@0xpass/passport";
 
 export default function Home() {
   const [username, setUsername] = useState("");
@@ -50,8 +50,7 @@ export default function Home() {
     endpoint: endpoint,
   });
 
-  const evenMinuteExample: LambdaNewParams = {
-    data: {
+  const evenMinuteExample: NewLambda = {
       authorization: {
         type: "none",
       },
@@ -78,7 +77,6 @@ export default function Home() {
         substitution: true,
       },
       postHook: [],
-    },
   };
 
 
@@ -243,7 +241,7 @@ export default function Home() {
 
   async function attachLambda() {
     try {
-      await passport.createLambda(evenMinuteExample)
+      await passport.createLambda({data: evenMinuteExample})
       alert("Lambda has been attached. Try singing now...")
     } catch (error) {
       console.error(error);
