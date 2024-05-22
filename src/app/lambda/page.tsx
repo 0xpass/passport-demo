@@ -51,7 +51,7 @@ export default function LambdaPage() {
       conditions: [
         {
           type: "code",
-          code: "if ( '<<inputs.0>>' === ##redacted##){ return true; } else { return false; }",
+          code: "if ( '<<inputs.0>>' === '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f'){ return true; } else { return false; }",
           output_type: "integer",
           substitution: true,
         },
@@ -66,7 +66,7 @@ export default function LambdaPage() {
     },
   };
 
-  const triviaLambdaId = "a833044c-c77e-4e9e-91d1-5ddf271717bc";
+  const triviaLambdaId = "ab99d010-0840-4311-a7c4-bbcc07fc78a5";
 
   const ethPriceJson = {
     data: {
@@ -105,7 +105,7 @@ export default function LambdaPage() {
     },
   };
 
-  const ethPriceUuid = "f20ad641-4db9-4530-a395-a06214bf3912";
+  const ethPriceUuid = "7df2cdbe-2b31-447b-a20c-864e938940c0";
 
   const jwtDelegationJson = {
     data: {
@@ -135,7 +135,7 @@ export default function LambdaPage() {
     },
   };
 
-  const jwtDelegationUuid = "d24cbd82-cf23-4447-8027-baa2dc0c57dc";
+  const jwtDelegationUuid = "fce0c6c9-b5ce-43f9-9a3c-1055b14e6013";
 
   const pemJson = {
     publicKey:
