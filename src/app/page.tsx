@@ -41,14 +41,9 @@ export default function Home() {
   } | null>(null);
 
   const endpoint = process.env.NEXT_PUBLIC_ENDPOINT;
-  const enclavePublicKey = process.env.NEXT_PUBLIC_ENCLAVE_PUBLIC_KEY;
   const scopeId = process.env.NEXT_PUBLIC_SCOPE_ID;
 
-  const { passport } = usePassport({
-    ENCLAVE_PUBLIC_KEY: enclavePublicKey!,
-    scope_id: scopeId!,
-    endpoint: endpoint,
-  });
+  const { passport } = usePassport(scopeId!);
 
   const evenMinuteExample: NewLambda = {
     authorization: {
