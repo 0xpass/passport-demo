@@ -9,6 +9,13 @@ import { usePassport } from "./hooks/usePassport";
 import { SignUpButton, useUser } from "@clerk/nextjs";
 import axios from "axios";
 import { NewLambda } from "@0xpass/passport";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 export default function Home() {
   const [username, setUsername] = useState("");
@@ -17,7 +24,6 @@ export default function Home() {
   const { isSignedIn, isLoaded } = useUser();
 
   const [addressLoading, setAddressLoading] = useState(false);
-
   const [signMessageLoading, setSignMessageLoading] = useState(false);
   const [signTxLoading, setSignTxLoading] = useState(false);
   const [authenticateSetup, setAuthenticateSetup] = useState(false);
@@ -46,12 +52,8 @@ export default function Home() {
   const { passport } = usePassport(scopeId!);
 
   const evenMinuteExample: NewLambda = {
-    authorization: {
-      type: "none",
-    },
-    verifications: {
-      count: 1,
-    },
+    authorization: { type: "none" },
+    verifications: { count: 1 },
     envs: [],
     triggers: [{ type: "account" }],
     max_executions: 0,
@@ -86,10 +88,7 @@ export default function Home() {
     const fetchDelegatedAddress = async () => {
       setAddressLoading(true);
       try {
-        const response = await fetch("/api/get-account", {
-          method: "GET",
-        });
-
+        const response = await fetch("/api/get-account", { method: "GET" });
         if (response.ok) {
           const addresses = await response.json();
           setAddress(addresses.result[0]);
@@ -110,10 +109,7 @@ export default function Home() {
   const alchemyUrl = process.env.NEXT_PUBLIC_ALCHEMY_URL;
   const fallbackProvider = http(alchemyUrl);
 
-  const userInput = {
-    username: username,
-    userDisplayName: username,
-  };
+  const userInput = { username, userDisplayName: username };
 
   async function register() {
     setRegistering(true);
@@ -121,10 +117,8 @@ export default function Home() {
     const requestInterceptor = axios.interceptors.request.use((request) => {
       if (
         request.url === endpoint &&
-        request.data &&
-        request.data.method === "completeRegistration"
+        request.data?.method === "completeRegistration"
       ) {
-        console.log("Completing registration request:", request);
         requestStartTime = performance.now();
       }
       return request;
@@ -135,16 +129,13 @@ export default function Home() {
         if (response.config.url === endpoint && response.config.data) {
           const requestData = JSON.parse(response.config.data);
           if (requestData.method === "completeRegistration") {
-            console.log("Completing registration response:", response);
             const timeTaken = performance.now() - requestStartTime;
             setKeygenTime(timeTaken);
           }
         }
         return response;
       },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
     if (username.trim().length === 0) {
@@ -156,7 +147,6 @@ export default function Home() {
     try {
       await passport.setupEncryption();
       const res = await passport.register(userInput);
-      console.log(res);
       setCompletingRegistration(false);
       if (res.result.account_id) {
         setRegistering(false);
@@ -165,7 +155,6 @@ export default function Home() {
         setAuthenticating(false);
       }
     } catch (error: any) {
-      console.error("Error registering:", error);
       if (error.message.includes("Duplicate registration")) {
         setDuplicateError(true);
         return;
@@ -213,28 +202,25 @@ export default function Home() {
       const [account] = await client.requestAddresses();
 
       const startTime = performance.now();
-      const response = await client.signMessage({
-        account: account,
-        message,
-      });
+      const response = await client.signMessage({ account, message });
       const endTime = performance.now();
 
       const timeTaken = endTime - startTime;
       setMessageSignature({ signature: response, timeTaken });
     } catch (error) {
-      console.error(error);
       setMessageSignature({
         signature: "Signing was not successful",
         timeTaken: 0,
       });
+    } finally {
+      setSignMessageLoading(false);
     }
-    setSignMessageLoading(false);
   }
 
   async function attachLambda() {
     try {
       await passport.createLambda({ data: evenMinuteExample });
-      alert("Lambda has been attached. Try singing now...");
+      alert("Lambda has been attached. Try signing now...");
     } catch (error) {
       console.error(error);
     }
@@ -261,7 +247,7 @@ export default function Home() {
       const startTime = performance.now();
       const response = await client.signTransaction({
         ...transaction,
-        account: account,
+        account,
       });
       const endTime = performance.now();
 
@@ -271,10 +257,10 @@ export default function Home() {
         timeTaken,
         prepareTransactionTimeTaken,
       });
-
-      setSignTxLoading(false);
     } catch (error) {
       console.error(error);
+    } finally {
+      setSignTxLoading(false);
     }
   }
 
@@ -295,20 +281,13 @@ export default function Home() {
       const startTime = performance.now();
       const response = await fetch("/api/sign", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "transaction",
-          data: transaction,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "transaction", data: transaction }),
       });
 
       if (response.ok) {
         const { signature } = await response.json();
         const timeTaken = performance.now() - startTime;
-        console.log({ signature });
-
         setTransactionSignature({
           prepareTransactionTimeTaken: 0,
           signature: signature.result,
@@ -330,25 +309,16 @@ export default function Home() {
     setSignMessageLoading(true);
     try {
       const startTime = performance.now();
-      let response = await fetch("/api/sign", {
+      const response = await fetch("/api/sign", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "message",
-          data: message,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "message", data: message }),
       });
 
       if (response.ok) {
         const { signature } = await response.json();
-        console.log(signature);
         const timeTaken = performance.now() - startTime;
-        setMessageSignature({
-          signature: signature.result,
-          timeTaken: timeTaken,
-        });
+        setMessageSignature({ signature: signature.result, timeTaken });
       } else {
         throw Error(`HTTP error: ${response}`);
       }
@@ -387,20 +357,28 @@ export default function Home() {
   }
   return (
     <main>
-      <div className="p-8">
-        <h1 className="text-6xl font-bold">Passport Demo</h1>
-        <p className="max-w-[40ch] leading-7 mt-8">
-          Effortlessly set up your self-custody wallet with a few simple taps /
-          clicks, by creating a passkey, with a unique username say goodbye to
-          passwords, seed phrases, and private keys.{" "}
-          <a
-            className="italic leading-8 underline underline-offset-4"
-            href="https://passport.0xpass.io"
-            target="_blank"
-          >
-            Learn more here
-          </a>
-        </p>
+      <div className="p-8 flex justify-between items-start flex-col md:flex-row">
+        <div>
+          <h1 className="text-6xl font-bold">Passport Demo</h1>
+          <p className="max-w-[40ch] leading-7 mt-8">
+            Effortlessly set up your self-custody wallet with a few simple taps
+            / clicks, by creating a passkey, with a unique username say goodbye
+            to passwords, seed phrases, and private keys.{" "}
+            <a
+              className="italic leading-8 underline underline-offset-4"
+              href="https://passport.0xpass.io"
+              target="_blank"
+            >
+              Learn more here
+            </a>
+          </p>
+        </div>
+        <div className="border p-2 bg-black rounded border-gray-300 mt-4 w-full md:w-auto">
+          <select className="bg-black w-full md:w-auto">
+            <option value="mainnet">Mainnet (Mochi)</option>
+            <option value="testnet">Testnet (Tiramisu)</option>
+          </select>
+        </div>
       </div>
 
       <div className="flex space-y-5 flex-col items-center max-w-xl mx-auto mt-5">
@@ -429,9 +407,7 @@ export default function Home() {
                 id="input-message"
                 type="text"
                 value={message}
-                onChange={(e) => {
-                  setMessage(e.target.value);
-                }}
+                onChange={(e) => setMessage(e.target.value)}
                 required
                 className="flex-grow border border-1 bg-[#161618] border-gray-600 focus:outline-black rounded p-2"
               />
@@ -514,7 +490,7 @@ export default function Home() {
                 id="button-attach-lambda"
                 className="text-xs border border-1 rounded p-2 w-full h-12"
                 onClick={async () => {
-                  await attachLambda(); // Added await to ensure the function is called properly
+                  await attachLambda();
                 }}
                 title="Attach Lambda (Note: Message signing is permitted only during even-numbered minutes)"
               >
@@ -569,9 +545,7 @@ export default function Home() {
                       placeholder="Enter a unique username"
                       disabled={completingRegistration}
                       value={username}
-                      onChange={(e) => {
-                        setUsername(e.target.value);
-                      }}
+                      onChange={(e) => setUsername(e.target.value)}
                       className={`w-4/6 border border-1 bg-[#161618] ${
                         duplicateError ? "border-red-600" : "border-gray-600"
                       } focus:outline-black rounded p-3 text-center`}
@@ -581,9 +555,9 @@ export default function Home() {
                         Username already exists, please choose another
                       </span>
                     )}
-                    <button
+                    <Button
                       id="button-passkey-register"
-                      className="w-4/6 border border-1 rounded p-3 cursor-pointer"
+                      className="w-4/6"
                       type="submit"
                       disabled={
                         registering || authenticating || username.length === 0
@@ -598,7 +572,7 @@ export default function Home() {
                         : authenticating
                         ? "Authenticating..."
                         : " Register"}
-                    </button>
+                    </Button>
 
                     <span
                       onClick={() => setAuthenticateSetup(!authenticateSetup)}
