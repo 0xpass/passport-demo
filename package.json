@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@0xpass/key-signer": "^2.0.0",
-    "@0xpass/passport": "2.1.5",
+    "@0xpass/passport": "2.1.7",
     "@0xpass/passport-viem": "^2.0.0",
     "@0xpass/webauthn-signer": "^2.0.0",
     "@clerk/nextjs": "^4.29.10",

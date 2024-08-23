@@ -17,7 +17,7 @@ export function usePassport(scopeId: string) {
     passportRef.current = new Passport({
       scopeId: scopeId,
       signer: signerRef.current,
-      network: Network.TESTNET,
+      network: Network.MAINNET,
     });
   }
 
