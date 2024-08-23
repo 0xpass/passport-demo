@@ -8,7 +8,7 @@ import { JsonViewer } from "@textea/json-viewer";
 import { usePassport } from "./hooks/usePassport";
 import { SignUpButton, useUser } from "@clerk/nextjs";
 import axios from "axios";
-import { NewLambda } from "@0xpass/passport";
+import { Network, NewLambda } from "@0xpass/passport";
 
 export default function Home() {
   const [username, setUsername] = useState("");
@@ -202,7 +202,7 @@ export default function Home() {
       authenticatedHeader,
       fallbackProvider,
       mainnet,
-      endpoint
+      Network.MAINNET
     );
   }
 
