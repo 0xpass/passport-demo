@@ -74,7 +74,7 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchAddress() {
-      const client: WalletClient = createWalletClient();
+      const client: WalletClient = await createWalletClient();
       const response = await client.requestAddresses();
       setAddress(response);
     }
@@ -197,7 +197,7 @@ export default function Home() {
     }
   }
 
-  function createWalletClient() {
+  async function createWalletClient() {
     return createPassportClient(
       authenticatedHeader,
       fallbackProvider,
@@ -209,7 +209,7 @@ export default function Home() {
   async function signMessage(message: string) {
     try {
       setSignMessageLoading(true);
-      const client: WalletClient = createWalletClient();
+      const client: WalletClient = await createWalletClient();
       const [account] = await client.requestAddresses();
 
       const startTime = performance.now();
@@ -243,7 +243,7 @@ export default function Home() {
   async function signTx() {
     try {
       setSignTxLoading(true);
-      const client: WalletClient = createWalletClient();
+      const client: WalletClient = await createWalletClient();
 
       const prepareTransactionStart = performance.now();
       const transaction = await client.prepareTransactionRequest({
